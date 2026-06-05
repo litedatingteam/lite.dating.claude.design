@@ -258,10 +258,14 @@ function OnbVerify({ data, set }) {
         <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}><strong>Your selfie is private.</strong> It is never shown to other users, never used for ads, and never shared. <strong>No government ID is ever required.</strong> The pose is a quick liveness check so we know it’s a real, live person — not a saved photo.</p>
       </div>
 
-      {/* required storage consent */}
+      {/* consent — required one-time processing + optional reusable storage */}
       <label className="card pad row" style={{ gap: 12, cursor: 'pointer', alignItems: 'flex-start', borderColor: data.selfieConsent ? 'var(--green)' : 'var(--line)' }} onClick={() => set({ selfieConsent: !data.selfieConsent })}>
         <span style={{ marginTop: 1 }}><CheckBox green on={data.selfieConsent} /></span>
-        <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>I consent to lite.dating <strong style={{ color: 'var(--ink)' }}>securely storing this selfie as a private reference for future verification checks</strong> (for example, when I change my photos). It stays private — never shown to others or used for ads — and I can request its deletion anytime.</span>
+        <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}><strong style={{ color: 'var(--ink)' }}>Required ·</strong> I understand this <strong style={{ color: 'var(--ink)' }}>one-time private selfie</strong> will be processed for verification review. It’s never shown to other users or used for ads.</span>
+      </label>
+      <label className="card pad row" style={{ gap: 12, cursor: 'pointer', alignItems: 'flex-start' }} onClick={() => set({ reuseSelfie: !data.reuseSelfie })}>
+        <span style={{ marginTop: 1 }}><CheckBox on={data.reuseSelfie} /></span>
+        <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}><strong style={{ color: 'var(--ink)' }}>Optional ·</strong> Keep a <strong style={{ color: 'var(--ink)' }}>reusable reference selfie</strong> so future photo changes can be reviewed faster. Off by default — you can change this anytime, and request deletion. Leave it off to use a one-time check only.</span>
       </label>
 
       {submitted
@@ -269,7 +273,7 @@ function OnbVerify({ data, set }) {
             <div className="row" style={{ gap: 10 }}><Icon name="clock" size={17} style={{ color: 'color-mix(in oklch, var(--amber), black 18%)', flex: 'none' }} /><span style={{ fontSize: 13.5, color: 'var(--ink-soft)' }}>Selfie submitted — verification in review. You can continue.</span></div>
             <button className="btn ghost sm" onClick={() => set({ verifyStatus: 'idle' })}>Replace</button>
           </div>
-        : <button className="btn primary block" disabled={!data.selfieConsent} onClick={() => set({ verifyStatus: 'submitted' })}><Icon name="camera" size={17} />{data.selfieConsent ? 'Upload private selfie' : 'Give consent to upload'}</button>}
+        : <button className="btn primary block" disabled={!data.selfieConsent} onClick={() => set({ verifyStatus: 'submitted' })}><Icon name="camera" size={17} />{data.selfieConsent ? 'Upload private selfie' : 'Confirm the required consent to upload'}</button>}
     </div>
   );
 }
@@ -280,7 +284,7 @@ function Onboarding() {
   const [data, setData] = useState({
     name: '', dob: '', gender: 'Woman', seeking: [], city: '', adult: false,
     photoCount: 0, bio: '', about: '', interests: [],
-    channels: { instagram: 'idle', telegram: 'idle' }, verifyStatus: 'idle', selfieConsent: false,
+    channels: { instagram: 'idle', telegram: 'idle' }, verifyStatus: 'idle', selfieConsent: false, reuseSelfie: false,
   });
   const set = (patch) => setData((d) => ({ ...d, ...patch }));
 

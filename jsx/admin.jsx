@@ -1,6 +1,6 @@
 /* lite.dating — admin surfaces */
 
-const ADMIN_USER = { handle: 'admin_halit', role: 'Owner', initials: 'HA' };
+const ADMIN_USER = { handle: 'admin_derya', role: 'Admin', initials: 'AD' };
 
 /* ---------- chart primitives (CSS only) ---------- */
 function KPI({ label, value, delta, up, hint }) {
@@ -221,7 +221,7 @@ function AdminApp() {
   };
   return (
     <OpsFrame kind="admin" nav={nav} active={view === 'report-detail' ? 'moderation' : view} onNav={onNav} title={titles[view]} user={ADMIN_USER}
-      actions={<span className="badge neutral"><Icon name="lock" size={12} />Owner</span>}>
+      actions={<span className="badge neutral"><Icon name="lock" size={12} />Admin</span>}>
       {screens[view]}
     </OpsFrame>
   );

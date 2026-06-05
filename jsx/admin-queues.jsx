@@ -93,10 +93,25 @@ function VerifyQueue({ title, desc, data, cols, render }) {
     </div>
   );
 }
+function MaskedHandle({ handle }) {
+  const { toast } = useNav();
+  const [shown, setShown] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const [reason, setReason] = useState('');
+  if (shown) return <span className="mono" style={{ position: 'relative', color: 'var(--ink)' }} title="Revealed · watermarked · logged">{handle}<span style={{ marginLeft: 6, fontSize: 9, color: 'var(--faint)', letterSpacing: '0.08em' }}>· logged</span></span>;
+  if (asking) return (
+    <span className="row" style={{ gap: 5 }}>
+      <input className="input" placeholder="reason…" value={reason} onChange={(e) => setReason(e.target.value)} style={{ height: 30, fontSize: 12, padding: '4px 8px', width: 110 }} />
+      <button className="btn sm" style={{ height: 30 }} disabled={!reason} onClick={() => { setShown(true); toast('Handle reveal logged to audit trail', 'warn'); }}>Reveal</button>
+    </span>
+  );
+  return <button className="btn ghost sm" style={{ height: 30 }} onClick={() => setAsking(true)}><span className="mono" style={{ letterSpacing: '0.06em' }}>@••••••</span><Icon name="eye" size={13} /></button>;
+}
+
 function AdminIG() {
-  return <VerifyQueue title="Instagram verification queue" desc="Confirm a handle belongs to this account. Handles are masked until reviewed." data={window.TS.IG_QUEUE}
+  return <VerifyQueue title="Instagram verification queue" desc="Confirm a handle belongs to this account. Handles are masked by default — reveal requires a reason and is watermarked and logged." data={window.TS.IG_QUEUE}
     cols={['Ref', 'User', 'Handle', 'Signal', 'Risk', 'Age', 'Action']}
-    render={(q) => ({ cells: [<span className="mono" style={{ fontWeight: 700, color: 'var(--ink)' }}>{q.id}</span>, <span className="mono muted">{q.userRef}</span>, <span className="mono">{q.handle}</span>, q.signal, <SevBadge sev={q.risk} />, <span className="faint">{q.age}</span>, <QueueActions />] })} />;
+    render={(q) => ({ cells: [<span className="mono" style={{ fontWeight: 700, color: 'var(--ink)' }}>{q.id}</span>, <span className="mono muted">{q.userRef}</span>, <MaskedHandle handle={q.handle} />, q.signal, <SevBadge sev={q.risk} />, <span className="faint">{q.age}</span>, <QueueActions />] })} />;
 }
 function AdminPhoto() {
   return <VerifyQueue title="Photo verification queue" desc="Private selfies are matched to profile photos. Never shown to users, never used for ads." data={window.TS.PHOTO_QUEUE}
