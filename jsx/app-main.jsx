@@ -14,7 +14,7 @@ const PALETTES = [
   ['oklch(0.70 0.15 350)', 'oklch(0.62 0.15 250)', 'oklch(0.74 0.12 196)'], // Lagoon
 ];
 
-const PUBLIC_SCREENS = ['landing', 'how', 'safety', 'free', 'about', 'contact', 'privacy', 'terms'];
+const PUBLIC_SCREENS = ['landing', 'how', 'safety', 'free', 'about', 'contact', 'privacy', 'terms', 'gdpr', 'kvkk', 'legal', 'rules'];
 
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -26,6 +26,12 @@ function App() {
   const [sent, setSent] = useState(() => window.DB.SENT.map((x) => ({ ...x })));
   const [inbox, setInbox] = useState(() => window.DB.INBOX.map((x) => ({ ...x })));
   const [connections, setConnections] = useState(() => window.DB.CONNECTIONS.map((x) => ({ ...x })));
+  const [requestsUsed, setRequestsUsed] = useState(4); // successful handle requests in rolling 24h
+  const [interests, setInterests] = useState(() => [...window.DB.ME.interests]);
+  const [notifs, setNotifs] = useState(() => (window.DB.NOTIFS || []).map((n) => ({ ...n })));
+  const [returnTo, setReturnTo] = useState(null);
+  const [blocked, setBlocked] = useState(() => new Set());
+  const [navHidden, setNavHidden] = useState(false);
 
   const toast = (msg, kind = 'info') => {
     const id = Math.random().toString(36).slice(2);
@@ -43,9 +49,30 @@ function App() {
     favorites,
     toggleFav: (id) => setFavorites((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; }),
     sent,
-    sendRequest: ({ to, channel, note }) => setSent((s) => [{ id: 's' + Date.now(), to, channel, note, status: 'pending', when: 'now' }, ...s]),
+    requestLimit: 13,
+    requestsUsed,
+    get requestsLeft() { return Math.max(0, 13 - requestsUsed); },
+    sendRequest: ({ to, channel, note }) => {
+      setSent((s) => [{ id: 's' + Date.now(), to, channel, note, status: 'pending', when: 'now' }, ...s]);
+      setRequestsUsed((n) => n + 1); // only successful requests count
+    },
+    cancelRequest: (to) => setSent((s) => s.filter((x) => !(x.to === to && x.status === 'pending'))),
+    blocked,
+    isBlocked: (id) => blocked.has(id),
+    block: (id) => { setBlocked((s) => new Set(s).add(id)); setInbox((s) => s.filter((r) => r.from !== id)); setSent((s) => s.filter((x) => x.to !== id)); setConnections((s) => s.filter((c) => c.who !== id)); },
+    navHidden,
+    toggleNav: () => setNavHidden((v) => !v),
     inbox,
     connections,
+    interests,
+    setInterests: (next) => { const arr = typeof next === 'function' ? next(interests) : next; setInterests(arr); window.DB.ME.interests = arr; },
+    notifs,
+    unread: notifs.filter((n) => !n.read).length,
+    markRead: (id) => setNotifs((s) => s.map((n) => n.id === id ? { ...n, read: true } : n)),
+    markAllRead: () => setNotifs((s) => s.map((n) => ({ ...n, read: true }))),
+    dismissNotif: (id) => setNotifs((s) => s.filter((n) => n.id !== id)),
+    returnTo,
+    setReturnTo,
     acceptRequest: (id) => {
       const req = inbox.find((r) => r.id === id);
       if (!req) return;
@@ -80,8 +107,13 @@ function App() {
       case 'free': return <WhyFree />;
       case 'about': return <About />;
       case 'contact': return <Contact />;
-      case 'privacy': case 'terms': return <LegalPlaceholder />;
+      case 'legal': return <LegalIndex />;
+      case 'privacy': return <LegalDoc docKey="privacy" />;
+      case 'terms': return <LegalDoc docKey="terms" />;
+      case 'gdpr': return <LegalDoc docKey="gdpr" />;
+      case 'kvkk': return <LegalDoc docKey="kvkk" />;
       case 'signin': return <SignIn />;
+      case 'signup-legal': return <SignupLegalGate />;
       case 'onb': return <Onboarding />;
       case 'discover': return <Discover />;
       case 'discover-empty': return <DiscoverEmpty framed />;
@@ -94,11 +126,21 @@ function App() {
       case 'edit': return <EditProfile />;
       case 'settings': return <Settings />;
       case 'safety-center': return <SafetyCenter />;
+      case 'decisions': return <ActiveDecisions />;
+      case 'data-export': return <DataExport />;
+      case 'ad-experience': return <AdExperience />;
+      case 'consent': return <ConsentSettings />;
+      case 'blocked': return <BlockedAccounts />;
+      case 'rules': return <CommunityRules />;
+      case 'rules-app': return <CommunityRulesApp />;
+      case 'safety-contact': return <SafetyContact />;
       case 'report': return <ReportFlow />;
+      case 'report-offplatform': return <ReportFlow offPlatform />;
       case 'appeal': return <AppealFlow />;
       case 'legal-gate': return <LegalGate />;
       case 'mod': return <ModApp />;
       case 'admin': return <AdminApp />;
+      case 'owner': return <OwnerApp />;
       default: return <Landing />;
     }
   };
@@ -127,31 +169,5 @@ function App() {
   );
 }
 
-/* lightweight safety-center placeholder reachable from sidebar (full build next pass) */
-function SafetyCenterStub() {
-  const { go, toast } = useNav();
-  const items = [
-    ['flag', 'Report a user', 'Tell us what happened'],
-    ['x', 'Block someone', 'Stop all contact'],
-    ['shield', 'Report off-platform harm', 'Even if it happened elsewhere'],
-    ['info', 'Appeal a decision', 'Ask for a human review'],
-    ['eye', 'Active decisions', 'See any restrictions on your account'],
-    ['mail', 'Contact safety team', 'safety@lite.dating'],
-  ];
-  return (
-    <AppFrame title="Safety center">
-      <p className="muted" style={{ fontSize: 14.5, marginBottom: 20, maxWidth: 560 }}>Everything to keep you safe, in one calm place. Reports protect users — false reports harm users — and we review both.</p>
-      <div className="disc-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)' }}>
-        {items.map(([icon, title, desc]) => (
-          <div key={title} className="card pad row" style={{ gap: 14, cursor: 'pointer' }} onClick={() => toast('Full report/appeal flows arrive in the next build pass')}>
-            <span style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--surface-2)', display: 'grid', placeItems: 'center', color: 'var(--violet)', flex: 'none' }}><Icon name={icon} size={19} /></span>
-            <div><strong style={{ color: 'var(--ink)' }}>{title}</strong><p className="muted" style={{ fontSize: 13 }}>{desc}</p></div>
-          </div>
-        ))}
-      </div>
-    </AppFrame>
-  );
-}
-
-window.SafetyCenterStub = SafetyCenterStub;
+/* mount */
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);

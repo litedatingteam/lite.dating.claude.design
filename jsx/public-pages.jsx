@@ -56,6 +56,7 @@ function Safety() {
           ['flag', 'Reports protect users', 'False reports harm users. We review both. Decisions come with a clear reason, and you can always appeal.'],
           ['eye', 'You control your data', 'Export your data or delete your account from the Safety center. Deletion removes your profile and pending requests.'],
           ['info', 'Ads stay out of safety', 'You will never see an ad inside a request, an accept screen, verification, reporting, or appeals. Ever.'],
+          ['lock', 'Ad consent is separate from signup', 'Ad and cookie choices are handled by Google’s certified consent system where required. Joining is never conditional on personalized ad consent — decline and still use everything.'],
         ].map(([icon, t, d]) => (
           <div key={t} className="card pad" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--surface-2)', display: 'grid', placeItems: 'center', color: 'var(--violet)' }}><Icon name={icon} size={20} /></span>
@@ -74,14 +75,15 @@ function Safety() {
 function WhyFree() {
   return (
     <div className="pub-page section">
-      <PageHead eyebrow="Why it’s free" title="Ad-supported, and honest about it." sub="No subscriptions, no premium tiers, no paid verification — clearly labeled Google ads keep it free." />
+      <PageHead eyebrow="It’s free" title="Ad-supported, and honest about it." sub="No subscriptions, no premium tiers, no paid verification — clearly labeled ads keep it free." />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }} className="how-grid">
         <div className="stack" style={{ gap: 14 }}>
           {[
             ['No paywalls, ever', 'Every core feature — browsing, requesting, unlocking handles — is free. There is nothing to unlock with money.'],
-            ['Clearly labeled', 'Ads are always marked “Advertisement” or “Sponsored”, and never dressed up to look like a profile or a button.'],
-            ['Kept away from actions', 'Ads never appear in a request, accept/decline, handle unlock, verification, reporting, appeals, or any private detail.'],
-            ['Google-certified consent', 'Ad personalization consent is handled through Google’s certified privacy messaging — not a homemade banner.'],
+            ['Shown across browsing', 'You’ll see ads while you discover and browse profiles and favorites — the same surfaces that make the app free to run.'],
+            ['Always clearly labeled', 'Ads are always marked “Advertisement” or “Sponsored”, and never dressed up to look like a profile or a button.'],
+            ['Kept away from actions', 'Ads never appear in a request, accept/decline, handle unlock, verification, reporting, appeals, or any private connection detail.'],
+            ['Consent stays separate', 'Ad-personalization consent is handled through a certified consent system — and signup never depends on it.'],
           ].map(([t, d]) => (
             <div key={t} className="row" style={{ gap: 12, alignItems: 'start' }}>
               <Icon name="check" size={18} style={{ color: 'var(--green)', flex: 'none', marginTop: 2 }} />
@@ -96,10 +98,17 @@ function WhyFree() {
           </div>
           <div className="stack" style={{ gap: 10 }}>
             {[0, 1].map((i) => (
-              <div key={i} className="ad-frame" style={{ height: 72, display: 'grid', placeItems: 'center' }}><span className="ph-label">google ad slot</span></div>
+              <div key={i} className="ad-frame" style={{ height: 72, display: 'grid', placeItems: 'center' }}><span className="ph-label">ad slot</span></div>
             ))}
           </div>
           <p className="faint" style={{ fontSize: 12, marginTop: 12 }}>This is what an ad placement looks like — separate, framed, and labeled. You can manage personalization in Settings.</p>
+        </div>
+      </div>
+      <div className="card pad" style={{ marginTop: 24, display: 'flex', gap: 14, alignItems: 'flex-start', background: 'var(--grad-soft)', border: 'none' }}>
+        <Icon name="shield" size={22} style={{ color: 'var(--violet)', flex: 'none', marginTop: 2 }} />
+        <div className="stack" style={{ gap: 6 }}>
+          <strong style={{ color: 'var(--ink)', fontSize: 15.5 }}>Ad consent is separate from your account</strong>
+          <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55 }}>Ad choices are managed through Google’s certified consent system where required (EEA, UK and Switzerland). <strong>Account signup is not conditional on personalized ad consent</strong> — if you decline, you can still join and use everything. Ads only ever render once ad eligibility and your consent state both allow it.</p>
         </div>
       </div>
     </div>

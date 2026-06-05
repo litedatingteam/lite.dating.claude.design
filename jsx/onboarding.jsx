@@ -21,38 +21,48 @@ function OnbBasics({ data, set }) {
       <Field label="First name" hint="This is how you’ll appear. No surnames.">
         <input className="input" placeholder="e.g. Mira" value={data.name} onChange={(e) => set({ name: e.target.value })} />
       </Field>
-      <div className="row" style={{ gap: 14 }}>
-        <Field label="Birth date"><input className="input" type="date" value={data.dob} onChange={(e) => set({ dob: e.target.value })} /></Field>
-        <Field label="Gender / presentation" hint="Shown on your profile.">
-          <select className="select" value={data.gender} onChange={(e) => set({ gender: e.target.value })}>
-            <option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer to self-describe</option>
-          </select>
-        </Field>
-      </div>
-      <Field label="City" hint="We show approximate distance, never your exact location.">
-        <input className="input" placeholder="e.g. Kadıköy, İstanbul" value={data.city} onChange={(e) => set({ city: e.target.value })} />
+      <Field label="Birth date" hint="You must be 18 or older — earlier dates only.">
+        <DatePicker value={data.dob} onChange={(v) => set({ dob: v })} />
       </Field>
-      <label className="card row" style={{ gap: 12, padding: 14, cursor: 'pointer', background: data.adult ? 'var(--green-w)' : 'var(--surface)', border: data.adult ? 'none' : '1px solid var(--line)' }} onClick={() => set({ adult: !data.adult })}>
-        <span style={{ width: 22, height: 22, borderRadius: 6, border: '2px solid ' + (data.adult ? 'var(--green)' : 'var(--line)'), background: data.adult ? 'var(--green)' : 'transparent', display: 'grid', placeItems: 'center', flex: 'none' }}>{data.adult && <Icon name="checkSm" size={14} style={{ color: 'white' }} />}</span>
+      <Field label="Your gender / presentation" hint="Shown on your profile.">
+        <GenderPicker value={data.gender} onChange={(v) => set({ gender: v })} />
+      </Field>
+      <Field label="Interested in" hint="Pick one or more. You’ll only see — and be seen by — people whose preferences match yours both ways.">
+        <GenderPicker multi value={data.seeking} onChange={(v) => set({ seeking: v })} />
+      </Field>
+      <Field label="City" hint="We auto-detect your area with Google, never your exact location. Change it anytime.">
+        <CityField value={data.city} onChange={(v) => set({ city: v })} autoDetect />
+      </Field>
+      <label className="card row" style={{ gap: 12, padding: 14, cursor: 'pointer', background: data.adult ? 'var(--green-w)' : 'var(--surface)', border: data.adult ? 'none' : '1px solid var(--line)', borderRadius: 'var(--r-md)' }} onClick={() => set({ adult: !data.adult })}>
+        <CheckBox green on={data.adult} />
         <span style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 500 }}>I confirm I am 18 years or older.</span>
       </label>
     </div>
   );
 }
 
-function OnbPhotos() {
+function OnbPhotos({ data, set }) {
+  const count = data.photoCount;
   return (
     <div className="stack" style={{ gap: 16 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          i < 2
-            ? <Photo key={i} label={i === 0 ? 'main · photo' : 'photo'} tint={i} ratio="3 / 4">
-                <span className="badge" style={{ position: 'absolute', bottom: 6, left: 6, background: 'var(--surface)', fontSize: 10 }}>{i === 0 ? 'Main' : 'Added'}</span>
-              </Photo>
-            : <button key={i} className="ph-stripe" style={{ aspectRatio: '3 / 4', borderRadius: 'var(--r-md)', border: '1.5px dashed var(--line)', background: 'var(--surface-2)', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--muted)' }}>
-                <span className="stack" style={{ alignItems: 'center', gap: 4 }}><Icon name="plus" size={20} /><span className="ph-label">add</span></span>
-              </button>
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} style={{ position: 'relative' }}>
+            <Photo label={i === 0 ? 'main · photo' : 'photo'} tint={i} ratio="3 / 4">
+              <span className="badge" style={{ position: 'absolute', bottom: 6, left: 6, background: 'var(--surface)', fontSize: 10 }}>{i === 0 ? 'Main' : 'Added'}</span>
+              <button className="btn icon" onClick={() => set({ photoCount: count - 1 })} style={{ position: 'absolute', top: 6, right: 6, width: 26, height: 26, minHeight: 0, background: 'var(--glass)' }} aria-label="Remove photo"><Icon name="x" size={13} /></button>
+            </Photo>
+          </div>
         ))}
+        {count < 6 && (
+          <button className="ph-stripe" onClick={() => set({ photoCount: count + 1 })} style={{ aspectRatio: '3 / 4', borderRadius: 'var(--r-md)', border: '1.5px dashed var(--line)', background: 'var(--surface-2)', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--muted)' }}>
+            <span className="stack" style={{ alignItems: 'center', gap: 4 }}><Icon name="plus" size={20} /><span className="ph-label">add photo</span></span>
+          </button>
+        )}
+      </div>
+      <div className="row" style={{ justifyContent: 'space-between' }}>
+        <span className="muted" style={{ fontSize: 13 }}>{count}/6 photos · minimum 3</span>
+        <span className="badge" style={{ background: count >= 3 ? 'var(--green-w)' : 'var(--amber-w)', color: count >= 3 ? 'var(--green)' : 'color-mix(in oklch, var(--amber), black 18%)', border: 'none' }}>{count >= 3 ? 'Minimum met' : `Add ${3 - count} more`}</span>
       </div>
       <div className="card pad" style={{ background: 'var(--surface-2)', border: 'none' }}>
         <strong style={{ color: 'var(--ink)', fontSize: 13.5 }}>Photo tips</strong>
@@ -67,12 +77,15 @@ function OnbPhotos() {
 }
 
 function OnbBio({ data, set }) {
+  const bioMin = 15, aboutMin = 60;
+  const bioShort = data.bio.length > 0 && data.bio.length < bioMin;
+  const aboutShort = data.about.length > 0 && data.about.length < aboutMin;
   return (
     <div className="stack" style={{ gap: 16 }}>
-      <Field label="Short bio" hint={`${data.bio.length}/80 · the one line people see first`}>
+      <Field label="Short bio" error={bioShort ? `At least ${bioMin} characters (${bioMin - data.bio.length} more)` : null} hint={`${data.bio.length}/80 · min ${bioMin} · the one line people see first`}>
         <input className="input" maxLength={80} placeholder="Architect who collects coffee shops." value={data.bio} onChange={(e) => set({ bio: e.target.value })} />
       </Field>
-      <Field label="About you" hint={`${data.about.length}/400`}>
+      <Field label="About you" error={aboutShort ? `At least ${aboutMin} characters (${aboutMin - data.about.length} more)` : null} hint={`${data.about.length}/400 · min ${aboutMin}`}>
         <textarea className="textarea" maxLength={400} style={{ minHeight: 120 }} placeholder="What are you into? What kind of person are you hoping to meet?" value={data.about} onChange={(e) => set({ about: e.target.value })} />
       </Field>
       <div className="card pad" style={{ background: 'var(--wash-cyan)', border: 'none', display: 'flex', gap: 10 }}>
@@ -92,7 +105,7 @@ function OnbInterests({ data, set }) {
   };
   return (
     <div className="stack" style={{ gap: 18 }}>
-      <p className="muted" style={{ fontSize: 14 }}>Pick up to 8. Shared interests get highlighted on profiles. <strong style={{ color: 'var(--ink)' }}>{data.interests.length}/8</strong></p>
+      <p className="muted" style={{ fontSize: 14 }}>Pick 3 to 8. Shared interests get highlighted on profiles. <strong style={{ color: data.interests.length >= 3 ? 'var(--green)' : 'var(--ink)' }}>{data.interests.length}/8</strong>{data.interests.length < 3 && <span className="faint"> · {3 - data.interests.length} more to continue</span>}</p>
       {Object.entries(CATEGORIES).map(([key, c]) => (
         <div key={key} className="stack" style={{ gap: 9 }}>
           <span className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}><span className="dot" style={{ background: `oklch(0.7 0.13 ${c.hue})` }} />{c.label}</span>
@@ -105,33 +118,107 @@ function OnbInterests({ data, set }) {
   );
 }
 
-function ChannelRow({ type, state, onVerify }) {
+/* Instagram: place a code in bio for ≥24h. Telegram: link via our bot/API. */
+function ChannelHead({ type, state }) {
   const label = type === 'instagram' ? 'Instagram' : 'Telegram';
   return (
-    <div className="card pad row" style={{ justifyContent: 'space-between', gap: 14 }}>
-      <div className="row" style={{ gap: 12 }}>
-        <span style={{ width: 42, height: 42, borderRadius: 12, background: type === 'instagram' ? 'var(--wash-pink)' : 'var(--wash-cyan)', display: 'grid', placeItems: 'center', color: type === 'instagram' ? 'var(--violet)' : 'var(--cyan)', flex: 'none' }}><Icon name={type} size={20} /></span>
-        <div><strong style={{ color: 'var(--ink)' }}>{label}</strong><p className="muted" style={{ fontSize: 13 }}>{state === 'verified' ? 'Verified — you can request this channel' : 'Connect to request this channel'}</p></div>
-      </div>
-      {state === 'verified'
-        ? <span className="badge verified"><Icon name="check" />Verified</span>
-        : state === 'pending'
-        ? <span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Checking…</span>
-        : <button className="btn soft sm" onClick={onVerify}>Verify</button>}
+    <div className="row" style={{ gap: 12 }}>
+      <span style={{ width: 42, height: 42, borderRadius: 12, background: type === 'instagram' ? 'var(--wash-pink)' : 'var(--wash-cyan)', display: 'grid', placeItems: 'center', color: type === 'instagram' ? 'var(--violet)' : 'var(--cyan)', flex: 'none' }}><Icon name={type} size={20} /></span>
+      <div><strong style={{ color: 'var(--ink)' }}>{label}</strong><p className="muted" style={{ fontSize: 13 }}>{state === 'verified' ? 'Verified — you can request this channel' : type === 'instagram' ? 'Confirm with a code in your bio' : 'Link through our Telegram bot'}</p></div>
     </div>
   );
 }
+
+function InstagramVerify({ state, set }) {
+  const { toast } = useNav();
+  const [code] = useState(() => 'lite-' + Math.random().toString(36).slice(2, 6).toUpperCase());
+  const [handle, setHandle] = useState('');
+  const open = state === 'code' || state === 'checking';
+  return (
+    <div className="card pad stack" style={{ gap: 14 }}>
+      <div className="row" style={{ justifyContent: 'space-between', gap: 12 }}>
+        <ChannelHead type="instagram" state={state} />
+        {state === 'verified'
+          ? <span className="badge verified"><Icon name="check" />Verified</span>
+          : state === 'checking'
+          ? <span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Checking bio…</span>
+          : !open && <button className="btn soft sm" onClick={() => set('code')}>Verify</button>}
+      </div>
+
+      {open && (
+        <div className="stack" style={{ gap: 12 }}>
+          <div className="hr" />
+          <div className="stack" style={{ gap: 7 }}>
+            <span className="eyebrow">Step 1 · Add this code to your bio</span>
+            <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+              <div className="row" style={{ gap: 10, flex: 1, minWidth: 180, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', padding: '12px 14px', justifyContent: 'space-between' }}>
+                <span className="mono" style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink)', letterSpacing: '0.04em' }}>{code}</span>
+                <button className="btn ghost sm" onClick={() => toast('Code copied', 'ok')}><Icon name="copy" size={14} />Copy</button>
+              </div>
+            </div>
+            <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>Paste it anywhere in your Instagram bio and <strong style={{ color: 'var(--ink)' }}>keep it there for at least 24 hours</strong> so we can confirm you own the account. You can remove it afterwards.</p>
+          </div>
+          <div className="stack" style={{ gap: 7 }}>
+            <span className="eyebrow">Step 2 · Your Instagram handle</span>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--faint)' }}>@</span>
+              <input className="input" style={{ paddingLeft: 26 }} placeholder="yourhandle" value={handle} onChange={(e) => setHandle(e.target.value.replace(/[^a-z0-9._]/gi, ''))} />
+            </div>
+          </div>
+          {state === 'checking'
+            ? <div className="row" style={{ gap: 10, justifyContent: 'center', padding: 4 }}><span className="spinner" /><span className="muted" style={{ fontSize: 13 }}>Looking for your code…</span></div>
+            : <div className="row" style={{ gap: 10 }}>
+                <button className="btn ghost sm" onClick={() => set('idle')}>Cancel</button>
+                <button className="btn primary sm" style={{ flex: 1 }} disabled={!handle} onClick={() => { set('checking'); setTimeout(() => { set('verified'); toast('Instagram verified', 'ok'); }, 1500); }}>I’ve added the code — check now</button>
+              </div>}
+          <div className="card pad" style={{ background: 'var(--amber-w)', border: 'none', display: 'flex', gap: 9, padding: 12 }}>
+            <Icon name="clock" size={15} style={{ color: 'color-mix(in oklch, var(--amber), black 18%)', flex: 'none' }} />
+            <p style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.45 }}>We re-check periodically. The code must stay in your bio for a full 24 hours for verification to stick.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TelegramVerify({ state, set }) {
+  const { toast } = useNav();
+  const open = state === 'bot' || state === 'linking';
+  return (
+    <div className="card pad stack" style={{ gap: 14 }}>
+      <div className="row" style={{ justifyContent: 'space-between', gap: 12 }}>
+        <ChannelHead type="telegram" state={state} />
+        {state === 'verified'
+          ? <span className="badge verified"><Icon name="check" />Verified</span>
+          : state === 'linking'
+          ? <span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Linking…</span>
+          : !open && <button className="btn soft sm" onClick={() => set('bot')}>Verify</button>}
+      </div>
+
+      {open && (
+        <div className="stack" style={{ gap: 12 }}>
+          <div className="hr" />
+          <span className="eyebrow">Link through our bot</span>
+          <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>Open <span className="mono" style={{ color: 'var(--ink)' }}>@litedating_bot</span> in Telegram and tap <strong style={{ color: 'var(--ink)' }}>Start</strong>. The bot confirms your account automatically over the Telegram API — no code to copy, nothing to keep in your profile.</p>
+          {state === 'linking'
+            ? <div className="row" style={{ gap: 10, justifyContent: 'center', padding: 4 }}><span className="spinner" /><span className="muted" style={{ fontSize: 13 }}>Waiting for the bot to confirm…</span></div>
+            : <div className="row" style={{ gap: 10 }}>
+                <button className="btn ghost sm" onClick={() => set('idle')}>Cancel</button>
+                <button className="btn ink sm" style={{ flex: 1 }} onClick={() => { set('linking'); setTimeout(() => { set('verified'); toast('Telegram verified', 'ok'); }, 1600); }}><Icon name="telegram" size={15} />Open Telegram bot</button>
+              </div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function OnbChannels({ data, set }) {
-  const verify = (k) => {
-    set({ channels: { ...data.channels, [k]: 'pending' } });
-    setTimeout(() => set({ channels: { ...data.channels, [k]: 'verified' } }), 1100);
-  };
-  // read latest via functional pattern not available; use effect-free approach
+  const setCh = (k, v) => set({ channels: { ...data.channels, [k]: v } });
   return (
     <div className="stack" style={{ gap: 14 }}>
       <p className="muted" style={{ fontSize: 14, lineHeight: 1.55 }}>Verify the channels you’re willing to share. <strong style={{ color: 'var(--ink)' }}>You can only ever request a channel you’ve verified yourself</strong> — and the other person must have verified it too.</p>
-      <ChannelRow type="instagram" state={data.channels.instagram} onVerify={() => verify('instagram')} />
-      <ChannelRow type="telegram" state={data.channels.telegram} onVerify={() => verify('telegram')} />
+      <InstagramVerify state={data.channels.instagram} set={(v) => setCh('instagram', v)} />
+      <TelegramVerify state={data.channels.telegram} set={(v) => setCh('telegram', v)} />
       <div className="card pad" style={{ background: 'var(--surface-2)', border: 'none', display: 'flex', gap: 10 }}>
         <Icon name="shield" size={17} style={{ color: 'var(--green)', flex: 'none' }} />
         <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>Verifying a channel is a safety step, not a paid product. Your handle stays hidden until you both consent to share it.</p>
@@ -141,27 +228,48 @@ function OnbChannels({ data, set }) {
 }
 
 function OnbVerify({ data, set }) {
+  const submitted = data.verifyStatus === 'submitted';
   return (
     <div className="stack" style={{ gap: 16 }}>
       <div className="row" style={{ gap: 18, alignItems: 'center' }}>
-        <div style={{ width: 120, flex: 'none' }}>
-          <Photo label="selfie" ratio="1 / 1" radius="50%" tint={1}>
-            <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px dashed color-mix(in oklch, var(--violet), white 40%)' }} />
-          </Photo>
+        <div style={{ width: 104, flex: 'none', position: 'relative' }}>
+          <div className="ph-stripe" style={{ aspectRatio: '3 / 4', borderRadius: 'var(--r-md)', border: '2px dashed color-mix(in oklch, var(--violet), white 40%)', display: 'grid', placeItems: 'center', backgroundColor: 'oklch(0.95 0.03 300)' }}>
+            <span className="stack" style={{ alignItems: 'center', gap: 5, opacity: 0.85 }}><Icon name={submitted ? 'check' : 'user'} size={22} style={{ color: submitted ? 'var(--green)' : 'var(--muted)' }} /><span className="ph-label">{submitted ? 'uploaded' : 'selfie'}</span></span>
+          </div>
+          {submitted && <span style={{ position: 'absolute', right: -6, top: -6, width: 28, height: 28, borderRadius: '50%', background: 'var(--amber)', border: '3px solid var(--surface)', display: 'grid', placeItems: 'center', color: 'white' }}><Icon name="clock" size={14} /></span>}
         </div>
         <div className="stack" style={{ gap: 6 }}>
-          <h3 style={{ fontSize: 18 }}>Take a private selfie</h3>
-          <p className="muted" style={{ fontSize: 14, lineHeight: 1.55 }}>This confirms a real person is behind the profile. Match the pose shown, in good light.</p>
+          <h3 style={{ fontSize: 18 }}>Upload a private selfie</h3>
+          <p className="muted" style={{ fontSize: 14, lineHeight: 1.55 }}>This confirms a real person is behind the profile. Take a clear photo in good light following the pose below, then upload it.</p>
         </div>
       </div>
+
+      <div className="card pad" style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'var(--grad-soft)', border: 'none' }}>
+        <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--surface)', display: 'grid', placeItems: 'center', color: 'var(--violet)', flex: 'none' }}><Icon name="user" size={20} /></span>
+        <div className="stack" style={{ gap: 2 }}>
+          <span className="eyebrow">Your pose for this check</span>
+          <strong style={{ color: 'var(--ink)', fontSize: 14.5, lineHeight: 1.35 }}>Show the open palm of your left or right hand under your chin — without covering your face.</strong>
+          <span className="muted" style={{ fontSize: 12.5, lineHeight: 1.4, marginTop: 4 }}>Please remove glasses, hats, masks or anything else that hides your face.</span>
+        </div>
+      </div>
+
       <div className="card pad" style={{ display: 'flex', gap: 10, background: 'var(--green-w)', border: 'none' }}>
         <Icon name="lock" size={17} style={{ color: 'var(--green)', flex: 'none' }} />
-        <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}><strong>Your selfie is private.</strong> It is never shown to other users, never used for ads, and never shared. No government ID is ever required.</p>
+        <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}><strong>Your selfie is private.</strong> It is never shown to other users, never used for ads, and never shared. <strong>No government ID is ever required.</strong> The pose is a quick liveness check so we know it’s a real, live person — not a saved photo.</p>
       </div>
-      <label className="row" style={{ gap: 12, cursor: 'pointer' }} onClick={() => set({ reuse: !data.reuse })}>
-        <span style={{ marginTop: 1 }}><Switch checked={data.reuse} onChange={() => set({ reuse: !data.reuse })} /></span>
-        <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>Keep a reusable reference selfie so I don’t have to re-verify each time. <span className="muted">(Optional — you can choose a one-time check instead.)</span></span>
+
+      {/* required storage consent */}
+      <label className="card pad row" style={{ gap: 12, cursor: 'pointer', alignItems: 'flex-start', borderColor: data.selfieConsent ? 'var(--green)' : 'var(--line)' }} onClick={() => set({ selfieConsent: !data.selfieConsent })}>
+        <span style={{ marginTop: 1 }}><CheckBox green on={data.selfieConsent} /></span>
+        <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>I consent to lite.dating <strong style={{ color: 'var(--ink)' }}>securely storing this selfie as a private reference for future verification checks</strong> (for example, when I change my photos). It stays private — never shown to others or used for ads — and I can request its deletion anytime.</span>
       </label>
+
+      {submitted
+        ? <div className="card pad row" style={{ gap: 10, background: 'var(--amber-w)', border: 'none', justifyContent: 'space-between' }}>
+            <div className="row" style={{ gap: 10 }}><Icon name="clock" size={17} style={{ color: 'color-mix(in oklch, var(--amber), black 18%)', flex: 'none' }} /><span style={{ fontSize: 13.5, color: 'var(--ink-soft)' }}>Selfie submitted — verification in review. You can continue.</span></div>
+            <button className="btn ghost sm" onClick={() => set({ verifyStatus: 'idle' })}>Replace</button>
+          </div>
+        : <button className="btn primary block" disabled={!data.selfieConsent} onClick={() => set({ verifyStatus: 'submitted' })}><Icon name="camera" size={17} />{data.selfieConsent ? 'Upload private selfie' : 'Give consent to upload'}</button>}
     </div>
   );
 }
@@ -170,15 +278,19 @@ function Onboarding() {
   const { go, toast } = useNav();
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
-    name: '', dob: '', gender: 'Woman', city: '', adult: false,
-    bio: '', about: '', interests: [],
-    channels: { instagram: 'idle', telegram: 'idle' }, reuse: true,
+    name: '', dob: '', gender: 'Woman', seeking: [], city: '', adult: false,
+    photoCount: 0, bio: '', about: '', interests: [],
+    channels: { instagram: 'idle', telegram: 'idle' }, verifyStatus: 'idle', selfieConsent: false,
   });
   const set = (patch) => setData((d) => ({ ...d, ...patch }));
 
   const canNext = [
-    data.name && data.adult, true, true, data.interests.length >= 1,
-    data.channels.instagram === 'verified' || data.channels.telegram === 'verified', true,
+    data.name && data.dob && data.adult && data.seeking.length >= 1,
+    data.photoCount >= 3,
+    data.bio.length >= 15 && data.about.length >= 60,
+    data.interests.length >= 3,
+    data.channels.instagram === 'verified' || data.channels.telegram === 'verified',
+    data.verifyStatus === 'submitted',
   ][step];
 
   const next = () => {
@@ -187,7 +299,7 @@ function Onboarding() {
   };
 
   const panels = [
-    <OnbBasics data={data} set={set} />, <OnbPhotos />, <OnbBio data={data} set={set} />,
+    <OnbBasics data={data} set={set} />, <OnbPhotos data={data} set={set} />, <OnbBio data={data} set={set} />,
     <OnbInterests data={data} set={set} />, <OnbChannels data={data} set={set} />, <OnbVerify data={data} set={set} />,
   ];
   const titles = ['The basics', 'Add your photos', 'Tell your story', 'What are you into?', 'Verify your channels', 'Quick photo check'];
@@ -198,7 +310,7 @@ function Onboarding() {
         <div className="center-col" style={{ padding: '14px 20px 16px', maxWidth: 560 }}>
           <div className="row" style={{ justifyContent: 'space-between', marginBottom: 14 }}>
             <Logo size={19} />
-            <button className="btn ghost sm" onClick={() => go('discover')}>Skip for now</button>
+            <span className="badge neutral"><Icon name="lock" size={12} />Setup required</span>
           </div>
           <StepDots step={step} />
         </div>

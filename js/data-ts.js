@@ -13,7 +13,7 @@
       summary: 'Reported harassment continued on Instagram after a handle trade.' },
     { id: 'C-4805', type: 'report', subjectRef: 'User #3391', priority: 'high', status: 'escalated', age: '3h', ai: false,
       reason: 'Minor safety', policy: 'P-1.0 Age & minors', evidence: 2, channel: null,
-      summary: 'Possible underage account. Escalated to senior review — restricted pending decision.' },
+      summary: 'Possible underage account. Escalated for Owner/Admin review — restricted pending decision.' },
   ];
 
   const APPEALS = [
@@ -83,9 +83,35 @@
   const POLICY_TEMPLATES = [
     { code: 'P-1.0', title: 'Age & minors', tone: 'Zero tolerance', uses: 4 },
     { code: 'P-2.1', title: 'Authenticity & impersonation', tone: 'Standard', uses: 31 },
+    { code: 'P-2.2', title: 'Stolen or AI-generated photos', tone: 'Standard', uses: 19 },
     { code: 'P-3.2', title: 'Harassment & threats', tone: 'Standard', uses: 58 },
+    { code: 'P-3.3', title: 'Hate speech & discrimination', tone: 'Standard', uses: 22 },
+    { code: 'P-3.4', title: 'Sexual harassment & unsolicited content', tone: 'Standard', uses: 27 },
+    { code: 'P-3.5', title: 'Doxxing & privacy violations', tone: 'Standard', uses: 8 },
     { code: 'P-4.0', title: 'Off-platform harm', tone: 'Contextual', uses: 12 },
+    { code: 'P-4.1', title: 'Violent or graphic content', tone: 'Zero tolerance', uses: 3 },
+    { code: 'P-4.2', title: 'Self-harm & crisis signals', tone: 'Support-first', uses: 6 },
     { code: 'P-5.1', title: 'Spam & solicitation', tone: 'Standard', uses: 44 },
+    { code: 'P-5.2', title: 'Scams & financial fraud', tone: 'Standard', uses: 17 },
+    { code: 'P-5.3', title: 'Prostitution & illegal services', tone: 'Zero tolerance', uses: 9 },
+    { code: 'P-6.0', title: 'False or malicious reporting', tone: 'Reporter-abuse', uses: 14 },
+    { code: 'P-6.1', title: 'Ban evasion & duplicate accounts', tone: 'Standard', uses: 11 },
+    { code: 'P-7.0', title: 'Bot / automated activity', tone: 'Automated', uses: 25 },
+    { code: 'P-8.0', title: 'Ad-safety & policy content', tone: 'Contextual', uses: 7 },
+  ];
+
+  // Owner-only: critical actions that require Owner confirmation (spec §18.2)
+  const OWNER_APPROVALS = [
+    { id: 'OA-318', kind: 'Permanent ban', sev: 'critical', subject: 'Case C-4820 · repeat impersonation', by: 'admin_deniz', when: '40m', note: 'Admin recommends permanent ban after 3rd confirmed impersonation. Irreversible — Owner confirmation required.' },
+    { id: 'OA-317', kind: 'Role change', sev: 'high', subject: 'Promote mod_eda → Admin', by: 'admin_halit', when: '2h', note: 'Grants report/verification/appeal review and temporary suspension powers. Cannot change Owner.' },
+    { id: 'OA-316', kind: 'Legal publish', sev: 'high', subject: 'Privacy Policy v4.3', by: 'admin_deniz', when: '5h', note: 'Publishing triggers the in-app legal update gate for all users on next login.' },
+    { id: 'OA-315', kind: 'Evidence download', sev: 'critical', subject: 'Case C-4805 · raw media export', by: 'admin_deniz', when: '6h', note: 'Unrestricted evidence download is Owner-only. Reveal is watermarked and logged.' },
+    { id: 'OA-314', kind: 'Ad-safe override', sev: 'medium', subject: 'Re-enable ads · profile P-2291', by: 'admin_deniz', when: '1d', note: 'Admin requests lifting an automatic ad-safe hold after manual review.' },
+  ];
+
+  const BREAKGLASS = [
+    { actor: 'admin_halit', reason: 'Investigate coordinated report cluster C-4820', when: '3d ago', dur: '22 min' },
+    { actor: 'admin_halit', reason: 'Legal hold export for DSA request', when: '12d ago', dur: '8 min' },
   ];
 
   // overview metrics + tiny series for CSS charts
@@ -97,10 +123,10 @@
       { label: 'Open safety cases', value: '23', delta: '-3', up: true },
     ],
     revenue: [
-      { label: 'Ad revenue (30d)', value: '€8,410', delta: '+9.1%', up: true },
-      { label: 'eCPM', value: '€2.74', delta: '+0.3', up: true },
-      { label: 'Fill rate', value: '94.2%', delta: '+1.1%', up: true },
-      { label: 'Blocked-slot savings', value: '0 violations', delta: 'clean', up: true },
+      { label: 'Ad revenue (30d)', value: '$9,180', delta: '+9.1%', up: true, hint: 'Total earnings from ads over the last 30 days.' },
+      { label: 'eCPM', value: '$2.98', delta: '+0.3', up: true, hint: 'Effective earnings per 1,000 ad impressions.' },
+      { label: 'Fill rate', value: '94.2%', delta: '+1.1%', up: true, hint: 'Share of ad requests that returned a paying ad.' },
+      { label: 'Policy-safe rate', value: '100%', delta: 'clean', up: true, hint: 'Ad requests blocked on sensitive surfaces — kept fully compliant.' },
     ],
     visitorsSeries: [32, 38, 35, 44, 52, 48, 61, 58, 67, 72, 69, 81],
     revenueSeries: [180, 220, 210, 260, 240, 300, 290, 340, 330, 380, 360, 420],
@@ -108,5 +134,5 @@
     countries: [['Türkiye', 58], ['Germany', 14], ['Netherlands', 8], ['UK', 6], ['Other', 14]],
   };
 
-  window.TS = { CASES, APPEALS, IG_QUEUE, PHOTO_QUEUE, REVERIFY_QUEUE, AUDIT, RISK, AD_PLACEMENTS, MODERATORS, ROLE_PERMS, POLICY_TEMPLATES, METRICS };
+  window.TS = { CASES, APPEALS, IG_QUEUE, PHOTO_QUEUE, REVERIFY_QUEUE, AUDIT, RISK, AD_PLACEMENTS, MODERATORS, ROLE_PERMS, POLICY_TEMPLATES, METRICS, OWNER_APPROVALS, BREAKGLASS };
 })();

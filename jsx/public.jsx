@@ -105,15 +105,15 @@ function Landing() {
             <div style={{ padding: '44px 40px', color: 'var(--ink)' }}>
               <h2 style={{ fontSize: 30, color: 'var(--ink)' }}>Free, because it’s honestly ad-supported.</h2>
               <p style={{ fontSize: 16, color: 'var(--ink-soft)', marginTop: 14, lineHeight: 1.55, maxWidth: 420 }}>
-                No paywalls. No premium boosts. No paid verification. We show clearly labeled Google ads in their own space — never inside a request, an accept screen, or anything to do with safety.
+                No paywalls. No premium boosts. No paid verification. We show clearly labeled ads across the browsing experience — and never inside a request, an accept screen, verification, reporting or appeals.
               </p>
               <button className="btn ink" style={{ marginTop: 22 }} onClick={() => go('free')}>How ads work here<Icon name="arrowR" /></button>
             </div>
             <div style={{ padding: '44px 40px', display: 'grid', placeItems: 'center' }}>
               <div className="card" style={{ width: '100%', maxWidth: 320, padding: 16 }}>
                 <div className="ad-label" style={{ marginBottom: 8 }}><Icon name="info" size={12} /> Advertisement</div>
-                <div className="ad-frame" style={{ height: 96, display: 'grid', placeItems: 'center' }}><span className="ph-label">google ad slot</span></div>
-                <p className="faint" style={{ fontSize: 11.5, marginTop: 10 }}>Ads sit in their own labeled frame, away from any profile action.</p>
+                <div className="ad-frame" style={{ height: 96, display: 'grid', placeItems: 'center' }}><span className="ph-label">ad slot</span></div>
+                <p className="faint" style={{ fontSize: 11.5, marginTop: 10 }}>Ads are always labeled and kept clear of any profile action.</p>
               </div>
             </div>
           </div>

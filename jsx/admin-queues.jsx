@@ -1,10 +1,10 @@
 /* lite.dating — admin queue surfaces */
 
-function QueueHead({ title, desc, count }) {
+function QueueHead({ title, desc, count, hideSort }) {
   return (
     <div className="row" style={{ justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
       <div><div className="row" style={{ gap: 10 }}><span className="eyebrow">{title}</span>{count != null && <span className="badge neutral">{count} in queue</span>}</div><p className="muted" style={{ fontSize: 13, marginTop: 4 }}>{desc}</p></div>
-      <div className="row" style={{ gap: 8 }}><div className="seg"><button className="on">Newest</button><button>Priority</button></div></div>
+      {!hideSort && <div className="row" style={{ gap: 8 }}><div className="seg"><button className="on">Newest</button><button>Priority</button></div></div>}
     </div>
   );
 }
@@ -52,7 +52,7 @@ function AdminReportDetail({ c, onBack }) {
           <span className="eyebrow">Admin actions</span>
           <div className="card pad stack" style={{ gap: 10 }}>
             <button className="btn ghost block" onClick={() => toast('Reassigned to moderator', 'ok')}>Reassign to moderator</button>
-            <button className="btn ghost block" onClick={() => toast('Escalated to senior review', 'warn')}>Escalate</button>
+            <button className="btn ghost block" onClick={() => toast('Escalated for Owner review', 'warn')}>Escalate to Owner</button>
             <button className="btn ink block" onClick={() => { toast('Decision applied · logged', 'ok'); onBack(); }}>Apply decision…</button>
           </div>
           <div className="card pad" style={{ background: 'var(--surface-2)', border: 'none' }}><p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>Admins act on cases, not on a browsable list of users. Every action here is written to the audit log.</p></div>
@@ -117,9 +117,16 @@ function AdminAdCompliance() {
       <div className="card pad" style={{ background: 'var(--green-w)', border: 'none', display: 'flex', gap: 10, marginBottom: 16, alignItems: 'center' }}><Icon name="check" size={18} style={{ color: 'var(--green)', flex: 'none' }} /><p style={{ fontSize: 13.5, color: 'var(--ink-soft)' }}><strong>All policies passing.</strong> 0 ads detected near requests, accept/decline, unlocks, verification, reporting, appeals, or admin pages.</p></div>
       <DataTable cols={['Placement', 'Status', 'Label', 'Notes']}
         rows={P.map((p) => ({ cells: [<strong style={{ color: 'var(--ink)' }}>{p.slot}</strong>, <StatusPill status={p.status} />, p.label === '—' ? <span className="faint">—</span> : <span className="ad-label">{p.label}</span>, <span className="muted" style={{ fontSize: 12.5 }}>{p.note}</span>] })) } />
-      <div className="card pad row" style={{ justifyContent: 'space-between', marginTop: 16 }}>
-        <div className="row" style={{ gap: 10 }}><Icon name="info" size={18} style={{ color: 'var(--violet)' }} /><span style={{ fontSize: 13.5, color: 'var(--ink-soft)' }}>Consent is collected via Google’s certified CMP, not a homemade banner.</span></div>
-        <span className="badge verified"><Icon name="check" />CMP connected</span>
+      <div className="card pad" style={{ marginTop: 16 }}>
+        <div className="row" style={{ justifyContent: 'space-between', marginBottom: 10 }}>
+          <div className="row" style={{ gap: 10 }}><Icon name="shield" size={18} style={{ color: 'var(--violet)' }} /><strong style={{ color: 'var(--ink)', fontSize: 14.5 }}>Consent model</strong></div>
+          <span className="badge verified"><Icon name="check" />CMP connected</span>
+        </div>
+        <ul className="muted" style={{ fontSize: 13, lineHeight: 1.7, margin: 0, paddingLeft: 18 }}>
+          <li>Ads/cookie consent is collected via Google’s certified CMP (EEA, UK, Switzerland) — not a homemade banner.</li>
+          <li>Account signup is <strong>not</strong> conditional on personalized ad consent.</li>
+          <li>Ads only render once ad eligibility <em>and</em> the user’s CMP consent state both allow it.</li>
+        </ul>
       </div>
     </div>
   );

@@ -13,15 +13,18 @@ function OpsBrand({ kind, user }) {
 }
 
 function OpsFrame({ kind, nav, active, onNav, title, actions, banner, user, children }) {
+  const [drawer, setDrawer] = useState(false);
+  const navAndClose = (k) => { setDrawer(false); onNav(k); };
   return (
     <div className="app-frame" data-ops="true">
-      <aside className="sidebar">
+      {drawer && <div className="ops-scrim" onClick={() => setDrawer(false)} />}
+      <aside className={`sidebar ops-drawer ${drawer ? 'open' : ''}`}>
         <OpsBrand kind={kind} user={user} />
         {nav.map((grp, gi) => (
           <React.Fragment key={gi}>
             {grp.label && <div className="proto-grp" style={{ margin: '12px 8px 4px' }}>{grp.label}</div>}
             {grp.items.map(([k, label, icon, count]) => (
-              <div key={k} className={`sb-link ${active === k ? 'on' : ''}`} onClick={() => onNav(k)} style={{ fontSize: 13.5, padding: '9px 12px' }}>
+              <div key={k} className={`sb-link ${active === k ? 'on' : ''}`} onClick={() => navAndClose(k)} style={{ fontSize: 13.5, padding: '9px 12px' }}>
                 <Icon name={icon} size={17} /> {label}
                 {count != null && count > 0 && <span className="count" style={{ background: 'var(--muted)' }}>{count}</span>}
               </div>
@@ -36,7 +39,10 @@ function OpsFrame({ kind, nav, active, onNav, title, actions, banner, user, chil
         </div>
       </aside>
       <main className="app-main">
-        <div className="topbar"><h1 style={{ fontSize: 19 }}>{title}</h1><span className="grow" />{actions}</div>
+        <div className="topbar">
+          <button className="btn icon sm ghost ops-burger" onClick={() => setDrawer(true)} aria-label="Open menu"><Icon name="menu" size={18} /></button>
+          <h1 style={{ fontSize: 19 }}>{title}</h1><span className="grow" />{actions}
+        </div>
         {banner}
         <div className="app-scroll fade-in" key={active} style={{ maxWidth: 1180 }}>{children}</div>
       </main>

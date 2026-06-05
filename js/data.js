@@ -75,11 +75,52 @@
       about: 'I split time between Berlin clubs and İstanbul rooftops. Music is the whole personality, sorry. If you have a favourite venue, that is our first conversation.',
       interests: ['Techno', 'Music making', 'Dancing', 'Road trips', 'Cocktails', 'Design'],
       channels: { instagram: { verified: true }, telegram: { verified: true } } }),
+    P({ id: 'ipek', name: 'İpek', age: 25, city: 'Bornova, İzmir', dist: 42, gender: 'Woman',
+      bio: 'Med student who lives for sea swims and bad puns.', online: true,
+      about: 'I study hard and recover harder — usually in the Aegean. Looking for someone warm who can keep up with terrible jokes.',
+      interests: ['Swimming', 'Coffee', 'Cinema', 'Hiking', 'Cats', 'Brunch'],
+      channels: { instagram: { verified: true }, telegram: { verified: false } } }),
+    P({ id: 'can', name: 'Can', age: 29, city: 'Kızılay, Ankara', dist: 39, gender: 'Man',
+      bio: 'Software engineer, amateur potter, full-time tea drinker.',
+      about: 'I build quiet software and loud playlists. Weekends at the wheel — the pottery kind. Tell me your comfort film.',
+      interests: ['Ceramics', 'Tea', 'Startups', 'Chess', 'Jazz', 'Cycling'],
+      channels: { instagram: { verified: true }, telegram: { verified: true } } }),
+    P({ id: 'zoe', name: 'Zoë', age: 27, city: 'Jordaan, Amsterdam', dist: 2210, gender: 'Woman',
+      bio: 'Illustrator. Bikes everywhere, draws everyone.',
+      about: 'I sketch strangers on trains and call it research. Visiting İstanbul a lot this year. Looking for a museum-and-pancakes kind of person.',
+      interests: ['Painting', 'Museums', 'Cycling', 'Bookshops', 'Natural wine', 'Slow travel'],
+      channels: { instagram: { verified: true }, telegram: { verified: false } } }),
+    P({ id: 'baris', name: 'Barış', age: 34, city: 'Beyoğlu, İstanbul', dist: 7, gender: 'Man',
+      bio: 'Chef. I will absolutely judge your favourite restaurant — kindly.',
+      about: 'I run a small kitchen in Beyoğlu and cook for friends on my days off. Looking for someone who eats with curiosity, not rules.',
+      interests: ['Cooking', 'Street food', 'Wine', 'Live music', 'Travel', 'Dogs'],
+      channels: { instagram: { verified: true }, telegram: { verified: true } } }),
+    P({ id: 'hana', name: 'Hana', age: 26, city: 'Üsküdar, İstanbul', dist: 5, gender: 'Woman',
+      bio: 'Translator between three languages and zero plants that survive.', online: true,
+      about: 'Words are my whole life; succulents are my whole failure. I love long ferry rides and longer conversations.',
+      interests: ['Languages', 'Poetry', 'Bookshops', 'Trains', 'Tea', 'Cinema'],
+      channels: { instagram: { verified: false }, telegram: { verified: true } } }),
+    P({ id: 'omar', name: 'Omar', age: 31, city: 'Neukölln, Berlin', dist: 1738, gender: 'Man',
+      bio: 'DJ and daylight architect. Two very different jobs.',
+      about: 'I design buildings that behave and parties that don’t. In İstanbul most months. Looking for someone who dances badly with confidence.',
+      interests: ['Techno', 'Architecture', 'Vinyl bars', 'Dancing', 'Cocktails', 'Design'],
+      channels: { instagram: { verified: true }, telegram: { verified: true } } }),
+    P({ id: 'defne', name: 'Defne', age: 28, city: 'Bodrum, Muğla', dist: 360, gender: 'Woman',
+      bio: 'Marine biologist. Happiest underwater.',
+      about: 'I count fish for a living and it’s as good as it sounds. Looking for a land partner who doesn’t mind salty hair and early starts.',
+      interests: ['Swimming', 'Camping', 'Climate', 'Photography', 'Islands', 'Early mornings'],
+      channels: { instagram: { verified: true }, telegram: { verified: false } } }),
+    P({ id: 'luca', name: 'Luca', age: 30, city: 'Beşiktaş, İstanbul', dist: 6, gender: 'Non-binary',
+      bio: 'Game designer, board-game hoarder, gentle competitor.',
+      about: 'I make small games about big feelings. My flat is 60% board games. Looking for someone to lose to, lovingly.',
+      interests: ['Chess', 'Design', 'Cinema', 'Coffee', 'Writing', 'Cats'],
+      channels: { instagram: { verified: true }, telegram: { verified: true } } }),
   ];
 
   // current user
   const ME = {
     id: 'me', name: 'You', age: 29, city: 'Kadıköy, İstanbul',
+    gender: 'Woman', seeking: ['Man', 'Non-binary'],
     bio: 'Designer who likes long walks and short emails.',
     photos: 4,
     interests: ['Coffee', 'Cinema', 'Cycling', 'Architecture', 'Natural wine', 'Bookshops'],
@@ -91,6 +132,24 @@
   };
 
   const byId = (id) => PROFILES.find((p) => p.id === id);
+
+  // default “interested in” by gender, then mutual matching uses both sides
+  const defaultSeeking = (g) => g === 'Man' ? ['Woman', 'Non-binary'] : g === 'Woman' ? ['Man', 'Non-binary'] : ['Woman', 'Man', 'Non-binary'];
+  PROFILES.forEach((p) => { if (!p.seeking) p.seeking = defaultSeeking(p.gender); });
+  // demo flags for Discover tabs
+  const NEW_TODAY = ['can', 'baris', 'luca', 'ipek', 'hana'];
+  PROFILES.forEach((p) => { p.newToday = NEW_TODAY.includes(p.id); });
+  ['devran', 'yuki', 'omar'].forEach((id) => { const p = byId(id); if (p) p.online = true; });
+  // mutual gender-interest match: my gender is sought by them AND their gender is sought by me
+  const mutualGender = (me, p) => (me.seeking || []).includes(p.gender) && (p.seeking || []).includes(me.gender);
+
+  const CITIES = [
+    'Kadıköy, İstanbul', 'Beşiktaş, İstanbul', 'Şişli, İstanbul', 'Beyoğlu, İstanbul', 'Üsküdar, İstanbul',
+    'Bakırköy, İstanbul', 'Cihangir, İstanbul', 'Moda, İstanbul', 'Çankaya, Ankara', 'Keçiören, Ankara',
+    'Karşıyaka, İzmir', 'Konak, İzmir', 'Bornova, İzmir', 'Çeşme, İzmir', 'Muratpaşa, Antalya',
+    'Nilüfer, Bursa', 'Bodrum, Muğla', 'Selçuklu, Konya', 'Berlin, Germany', 'Kreuzberg, Berlin',
+    'Amsterdam, Netherlands', 'London, UK', 'Paris, France',
+  ];
 
   // incoming requests (inbox)
   const INBOX = [
@@ -113,5 +172,12 @@
     { id: 'c3', who: 'yuki', channel: 'instagram', handle: '@yuki.sound', daysLeft: 0, expired: true },
   ];
 
-  window.DB = { CATEGORIES, INTERESTS, PROFILES, ME, byId, tag, INBOX, SENT, CONNECTIONS };
+  const NOTIFS = [
+    { id: 'n1', kind: 'request', icon: 'inbox', title: 'New handle request', body: 'Arda asked to trade Instagram with you.', when: '2h', read: false },
+    { id: 'n2', kind: 'connection', icon: 'link', title: 'Handle unlocked', body: 'You and Lena both shared Instagram.', when: '4d', read: false },
+    { id: 'n3', kind: 'safety', icon: 'shield', title: 'A decision needs your attention', body: 'Your profile is on a visibility hold. You can appeal this decision.', when: '2d', read: false, appeal: true },
+    { id: 'n4', kind: 'tip', icon: 'sparkle', title: 'Tip', body: 'Profiles with 4+ photos get more requests.', when: '1w', read: true },
+  ];
+
+  window.DB = { CATEGORIES, INTERESTS, PROFILES, ME, byId, tag, INBOX, SENT, CONNECTIONS, CITIES, mutualGender, NOTIFS };
 })();

@@ -50,7 +50,7 @@ function SignIn() {
                 <h1 style={{ fontSize: 25 }}>Join free, or sign in</h1>
                 <p className="muted" style={{ fontSize: 14.5 }}>No swiping, no chat to manage, no password.</p>
               </div>
-              <button className="btn ghost lg block" onClick={() => { toast('Signing in with Google…'); setTimeout(() => go('onb'), 600); }}>
+              <button className="btn ghost lg block" onClick={() => { toast('Signing in with Google…'); setTimeout(() => go('signup-legal'), 600); }}>
                 <Icon name="google" size={18} /> Continue with Google
               </button>
               <div className="row" style={{ gap: 12, color: 'var(--faint)' }}>
@@ -74,7 +74,7 @@ function SignIn() {
                 <p className="muted" style={{ fontSize: 14 }}>If <strong style={{ color: 'var(--ink)' }}>{email || 'that email'}</strong> can sign in, we sent a 6-digit code.</p>
               </div>
               <CodeBoxes value={code} onChange={setCode} />
-              <button className="btn primary lg block" disabled={code.length < 6} onClick={() => { toast('Welcome — let’s set up your profile', 'ok'); setTimeout(() => go('onb'), 500); }}>Verify & continue</button>
+              <button className="btn primary lg block" disabled={code.length < 6} onClick={() => { toast('Welcome — let’s confirm a few things', 'ok'); setTimeout(() => go('signup-legal'), 500); }}>Verify & continue</button>
               <div className="tac">
                 {secs > 0
                   ? <span className="faint" style={{ fontSize: 13 }}>Resend code in <span className="mono">0:{String(secs).padStart(2, '0')}</span></span>

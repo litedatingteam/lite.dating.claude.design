@@ -139,3 +139,54 @@
 
 .spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--violet); animation: spin .7s linear infinite; }
 .skeleton { background: linear-gradient(90deg, var(--surface-2) 25%, color-mix(in oklch, var(--surface-2), white 40%) 50%, var(--surface-2) 75%); background-size: 200% 100%; animation: shimmer 1.3s infinite; border-radius: var(--r-sm); }
+
+/* ---------- custom dropdown ---------- */
+.dd-pop { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 60; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--sh-lg); padding: 6px; animation: riseIn .15s var(--ease); max-height: 260px; overflow: auto; }
+.dd-opt { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: var(--r-sm); font-size: 14.5px; color: var(--ink-soft); cursor: pointer; }
+.dd-opt:hover { background: var(--surface-2); }
+.dd-opt.on { background: color-mix(in oklch, var(--wash-violet), white 20%); color: var(--violet); font-weight: 600; }
+.dd-opt.on svg { color: var(--violet); }
+.dd-trigger { display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left; }
+.dd-foot { display: flex; align-items: center; justify-content: flex-end; gap: 5px; padding: 7px 8px 3px; font-size: 10.5px; color: var(--faint); font-family: var(--font-mono); letter-spacing: 0.02em; }
+
+/* ---------- calendar ---------- */
+.cal { position: absolute; top: calc(100% + 6px); left: 0; z-index: 60; width: 304px; max-width: calc(100vw - 40px); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh-lg); padding: 14px; animation: riseIn .15s var(--ease); }
+.cal-head { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.cal-head select { flex: 1; font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink); background: var(--surface-2); border: none; border-radius: var(--r-sm); padding: 8px 8px; cursor: pointer; }
+.cal-nav { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; color: var(--ink); flex: none; }
+.cal-nav:disabled { opacity: 0.35; cursor: not-allowed; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-dow { font-size: 10px; font-weight: 700; color: var(--faint); text-align: center; padding: 4px 0 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+.cal-day { aspect-ratio: 1; display: grid; place-items: center; font-size: 13px; border-radius: 9px; cursor: pointer; color: var(--ink-soft); border: none; background: none; font-family: inherit; }
+.cal-day:hover:not(:disabled) { background: var(--surface-2); }
+.cal-day.sel { background: linear-gradient(108deg, var(--pink), var(--violet)); color: white; font-weight: 700; }
+.cal-day:disabled { color: var(--line); cursor: not-allowed; }
+
+/* ---------- gender picker chips ---------- */
+.gp-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.gp-chip {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: inherit; font-size: 14px; font-weight: 600; color: var(--ink-soft);
+  padding: 11px 16px 11px 12px; border-radius: var(--r-pill);
+  border: 1.5px solid var(--line); background: var(--surface); cursor: pointer;
+  transition: border-color .16s, background .16s, color .16s, transform .16s var(--ease);
+}
+.gp-chip:hover:not(.dis) { border-color: color-mix(in oklch, var(--violet), white 40%); }
+.gp-chip.on { border-color: transparent; background: color-mix(in oklch, var(--wash-violet), white 18%); color: var(--violet); }
+.gp-chip.dis { cursor: not-allowed; opacity: 0.75; background: var(--surface-2); }
+.gp-box {
+  width: 20px; height: 20px; border-radius: 6px; flex: none;
+  border: 2px solid var(--line); background: transparent;
+  display: grid; place-items: center; transition: background .16s, border-color .16s;
+}
+.gp-box.round { border-radius: 50%; }
+.gp-box.on { background: linear-gradient(108deg, var(--pink), var(--violet)); border-color: transparent; }
+
+/* ---------- shared check / radio controls ---------- */
+.ck-box { width: 22px; height: 22px; border-radius: 6px; flex: none; border: 2px solid var(--line); background: transparent; display: grid; place-items: center; transition: background .15s, border-color .15s; }
+.ck-box.on { background: linear-gradient(108deg, var(--pink), var(--violet)); border-color: transparent; }
+.ck-box.green.on { background: var(--green); }
+.rd-box { width: 22px; height: 22px; border-radius: 50%; flex: none; border: 2px solid var(--line); display: grid; place-items: center; transition: border-color .15s; }
+.rd-box.on { border-color: var(--violet); }
+.rd-box .rd-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--violet); transform: scale(0); transition: transform .15s var(--ease); }
+.rd-box.on .rd-dot { transform: scale(1); }

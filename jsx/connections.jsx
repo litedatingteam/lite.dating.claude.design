@@ -31,7 +31,7 @@ function InboxCard({ req }) {
         <div className="row wrap" style={{ gap: 8 }}>
           <button className="btn primary sm" onClick={() => { store.acceptRequest(req.id); toast(`You shared your handle with ${p.name}`, 'ok'); }}><Icon name="check" size={15} />Accept & share handle</button>
           <button className="btn ghost sm" onClick={() => { store.declineRequest(req.id); toast('Request passed', 'warn'); }}>Pass</button>
-          <button className="btn ghost sm icon" title="Report or block" onClick={() => toast('Report flow would open here', 'warn')}><Icon name="flag" size={15} /></button>
+          <button className="btn ghost sm icon" title="Report or block" onClick={() => { store.setReturnTo('inbox'); go('report'); }}><Icon name="flag" size={15} /></button>
         </div>
       </div>
     </div>
@@ -67,7 +67,7 @@ function SentCard({ req }) {
       </div>
       <div className="stack" style={{ alignItems: 'end', gap: 8 }}>
         <span className={`badge ${meta[0]}`}><span className="dot" style={{ background: `var(--${meta[1] === 'muted' ? 'faint' : meta[1]})` }} />{status[0].toUpperCase() + status.slice(1)}</span>
-        {status === 'accepted' && <button className="btn soft sm" onClick={() => go('connections')}>View connection</button>}
+        {status === 'accepted' && <span className="faint" style={{ fontSize: 12 }}>Handle unlocked on their profile</span>}
       </div>
     </div>
   );
@@ -104,7 +104,7 @@ function ConnectionCard({ c }) {
         {expired
           ? <div className="card" style={{ padding: 14, background: 'var(--surface-2)', border: 'none', display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
               <div className="row" style={{ gap: 8 }}><Icon name="clock" size={16} style={{ color: 'var(--faint)' }} /><span className="muted" style={{ fontSize: 13 }}>Expired from lite.dating. Your chat elsewhere is unaffected.</span></div>
-              <button className="btn soft sm">Re-request</button>
+              <button className="btn primary sm" onClick={() => { store.sendRequest({ to: c.who, channel: c.channel, note: '' }); toast(`Re-requested ${c.channel === 'instagram' ? 'Instagram' : 'Telegram'} from ${p.name}`, 'ok'); }}><Icon name="send" size={14} />Re-request</button>
             </div>
           : <div className="card" style={{ padding: 14, background: 'var(--green-w)', border: 'none' }}>
               <div className="row" style={{ justifyContent: 'space-between', gap: 10 }}>
@@ -143,7 +143,7 @@ function Favorites() {
     <AppFrame title="Favorites">
       {favs.length === 0
         ? <EmptyState icon="heart" title="No favorites yet" body="Tap the heart on any profile to save it here. Favoriting is private — they’re never notified." action="Browse profiles" onAction={() => go('discover')} />
-        : <div className="disc-grid">{favs.map((p, i) => <ProfileCard key={p.id} p={p} tint={window.DB.PROFILES.findIndex((x) => x.id === p.id)} />)}</div>}
+        : <div className="disc-grid">{favs.map((p, i) => [<ProfileCard key={p.id} p={p} tint={window.DB.PROFILES.findIndex((x) => x.id === p.id)} />, ...(i === 2 ? [<NativeAd key="ad" />] : [])])}</div>}
     </AppFrame>
   );
 }

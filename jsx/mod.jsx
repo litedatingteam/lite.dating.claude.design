@@ -42,16 +42,24 @@ function EvidenceItem({ index, kind }) {
 function HiddenField({ label, value }) {
   const { toast } = useNav();
   const [shown, setShown] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const [reason, setReason] = useState('');
   return (
-    <div className="card pad row" style={{ justifyContent: 'space-between', gap: 12 }}>
+    <div className="card pad row" style={{ justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
       <div><div className="muted" style={{ fontSize: 12 }}>{label}</div><div className="mono" style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 600 }}>{shown ? value : '•••••• hidden'}</div></div>
-      {!shown && <button className="btn ghost sm" onClick={() => { setShown(true); toast('Access logged to audit trail', 'warn'); }}><Icon name="eye" size={13} />Reveal · logged</button>}
+      {shown
+        ? <span className="badge verified" style={{ fontSize: 10.5 }}><Icon name="eye" />Revealed · logged</span>
+        : asking
+        ? <span className="row" style={{ gap: 6 }}>
+            <input className="input" placeholder="Reason to reveal…" value={reason} onChange={(e) => setReason(e.target.value)} style={{ height: 32, fontSize: 12, padding: '4px 8px', width: 160 }} />
+            <button className="btn sm" style={{ height: 32 }} disabled={!reason} onClick={() => { setShown(true); toast('Handle reveal logged to audit trail', 'warn'); }}>Reveal</button>
+          </span>
+        : <button className="btn ghost sm" onClick={() => setAsking(true)}><Icon name="eye" size={13} />Reveal with reason · logged</button>}
     </div>
   );
 }
 
-function ModDashboard({ onOpen }) {
-  const cases = window.TS.CASES;
+function ModDashboard({ onOpen, cases }) {
   const summary = [
     ['Open', cases.filter((c) => c.status === 'open').length, 'var(--cyan)'],
     ['In review', cases.filter((c) => c.status === 'in-review').length, 'var(--amber)'],
@@ -102,9 +110,9 @@ function ModDashboard({ onOpen }) {
   );
 }
 
-const ACTIONS = ['No action needed', 'Send warning', 'Visibility hold', 'Suspend 7 days', 'Escalate to senior'];
+const ACTIONS = ['No action needed', 'Send warning', 'Visibility hold', 'Recommend suspension (Owner/Admin)', 'Escalate to Owner/Admin review'];
 
-function ModCaseReview({ c, onBack }) {
+function ModCaseReview({ c, onBack, onResolve }) {
   const { toast } = useNav();
   const [policy, setPolicy] = useState(c.policy);
   const [action, setAction] = useState(null);
@@ -166,7 +174,7 @@ function ModCaseReview({ c, onBack }) {
               <div className="stack" style={{ gap: 8 }}>
                 {ACTIONS.map((a) => (
                   <label key={a} className="row" style={{ gap: 10, cursor: 'pointer', fontSize: 13.5, color: 'var(--ink-soft)' }} onClick={() => setAction(a)}>
-                    <span style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid ' + (action === a ? 'var(--violet)' : 'var(--line)'), display: 'grid', placeItems: 'center', flex: 'none' }}>{action === a && <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--violet)' }} />}</span>
+                    <RadioDot on={action === a} />
                     {a}
                   </label>
                 ))}
@@ -175,7 +183,7 @@ function ModCaseReview({ c, onBack }) {
             <Field label="Reasoned notice (sent to user)" hint="Required. Decisions must explain why.">
               <textarea className="textarea" style={{ minHeight: 90 }} placeholder="Explain the decision in plain language…" value={notice} onChange={(e) => setNotice(e.target.value)} />
             </Field>
-            <button className="btn ink lg block" disabled={!action || !notice} onClick={() => { toast(`Decision applied to ${c.id} · logged`, 'ok'); onBack(); }}>Apply decision</button>
+            <button className="btn ink lg block" disabled={!action || !notice} onClick={() => { toast(`Decision applied to ${c.id} · logged`, 'ok'); onResolve(c.id); }}>Apply decision</button>
             <p className="faint" style={{ fontSize: 11.5, lineHeight: 1.5 }}>Applying records your handle, the policy, the action, and this notice to the audit trail.</p>
           </div>
         </div>
@@ -230,9 +238,11 @@ function ModApp() {
   const { go } = useNav();
   const [view, setView] = useState('dashboard');
   const [activeCase, setActiveCase] = useState(null);
+  const [cases, setCases] = useState(() => window.TS.CASES.map((c) => ({ ...c })));
   const open = (c) => { setActiveCase(c); setView('case'); };
+  const resolve = (id) => { setCases((s) => s.filter((c) => c.id !== id)); setView('dashboard'); };
   const nav = [
-    { items: [['dashboard', 'Dashboard', 'grid'], ['cases', 'My cases', 'flag', window.TS.CASES.length]] },
+    { items: [['dashboard', 'Dashboard', 'grid'], ['cases', 'My cases', 'flag', cases.length]] },
     { label: 'Reference', items: [['policy', 'Policy templates', 'info'], ['shift', 'Shift notes', 'bell']] },
     { label: 'Leave', items: [['exit', 'Exit to site', 'logout']] },
   ];
@@ -242,8 +252,8 @@ function ModApp() {
     <OpsFrame kind="mod" nav={nav} active={view === 'case' ? 'cases' : view} onNav={onNav} title={titles[view]} user={MOD_USER}
       banner={<PrivacyBanner text="Privacy mode · case-based access only · no user browsing · sensitive evidence blurred and logged on reveal" />}
       actions={<span className="badge neutral"><span className="dot" style={{ background: 'var(--green)' }} />On shift</span>}>
-      {view === 'dashboard' && <ModDashboard onOpen={open} />}
-      {view === 'case' && activeCase && <ModCaseReview c={activeCase} onBack={() => setView('dashboard')} />}
+      {view === 'dashboard' && <ModDashboard onOpen={open} cases={cases} />}
+      {view === 'case' && activeCase && <ModCaseReview c={activeCase} onBack={() => setView('dashboard')} onResolve={resolve} />}
       {view === 'policy' && <ModPolicyTemplates />}
       {view === 'shift' && <ModShiftNotes />}
     </OpsFrame>

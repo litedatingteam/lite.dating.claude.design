@@ -3,12 +3,13 @@
 const ADMIN_USER = { handle: 'admin_halit', role: 'Owner', initials: 'HA' };
 
 /* ---------- chart primitives (CSS only) ---------- */
-function KPI({ label, value, delta, up }) {
+function KPI({ label, value, delta, up, hint }) {
   return (
     <div className="card pad">
       <div className="muted" style={{ fontSize: 12.5 }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.02em', marginTop: 4 }}>{value}</div>
       {delta && <div className="row" style={{ gap: 5, marginTop: 6 }}><Icon name={up ? 'arrowR' : 'arrowL'} size={13} style={{ color: up ? 'var(--green)' : 'var(--red)', transform: up ? 'rotate(-45deg)' : 'rotate(45deg)' }} /><span style={{ fontSize: 12.5, fontWeight: 600, color: up ? 'var(--green)' : 'var(--red)' }}>{delta}</span></div>}
+      {hint && <p className="muted" style={{ fontSize: 11.5, lineHeight: 1.4, marginTop: 8, borderTop: '1px solid var(--line-soft)', paddingTop: 8 }}>{hint}</p>}
     </div>
   );
 }
@@ -66,7 +67,7 @@ function AdminRevenue() {
     <div className="stack" style={{ gap: 20 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }} className="kpi-grid">{M.revenue.map((k) => <KPI key={k.label} {...k} />)}</div>
       <div className="card pad stack" style={{ gap: 14 }}>
-        <div className="row" style={{ justifyContent: 'space-between' }}><span className="eyebrow">Ad revenue · last 12 days (€)</span><span className="badge neutral">Google AdSense</span></div>
+        <div className="row" style={{ justifyContent: 'space-between' }}><span className="eyebrow">Ad revenue · last 12 days ($)</span><span className="badge neutral">Google AdSense</span></div>
         <MiniBars series={M.revenueSeries} color="var(--green)" height={140} />
       </div>
       <div className="card pad" style={{ background: 'var(--surface-2)', border: 'none', display: 'flex', gap: 10 }}>

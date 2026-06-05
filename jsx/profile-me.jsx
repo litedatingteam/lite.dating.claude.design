@@ -1,8 +1,10 @@
 /* lite.dating — your profile, edit, settings */
 
 function YourProfile() {
-  const { go } = useNav();
+  const { go, store, toast } = useNav();
   const me = window.DB.ME;
+  const [tg, setTg] = useState(me.channels.telegram.verified ? 'verified' : 'idle');
+  const verifyTg = () => { setTg('checking'); setTimeout(() => { setTg('verified'); me.channels.telegram.verified = true; toast('Telegram verified', 'ok'); }, 1200); };
   return (
     <AppFrame title="Your profile" actions={<button className="btn primary sm" onClick={() => go('edit')}><Icon name="user" size={15} />Edit profile</button>}>
       <div style={{ display: 'grid', gridTemplateColumns: '0.8fr 1fr', gap: 32, alignItems: 'start' }} className="profile-grid">
@@ -23,12 +25,16 @@ function YourProfile() {
           </div>
           <div className="stack" style={{ gap: 8 }}>
             <div className="row wrap" style={{ gap: 10, alignItems: 'center' }}><h1 style={{ fontSize: 28, whiteSpace: 'nowrap' }}>{me.name}, {me.age}</h1><VerifiedBadge /></div>
-            <div className="row muted" style={{ gap: 8, fontSize: 14.5 }}><Icon name="pin" size={15} />{me.city}</div>
+            <div className="row muted" style={{ gap: 8, fontSize: 14.5 }}><Icon name="pin" size={15} />{me.city} · {me.gender}</div>
             <p style={{ fontSize: 16, color: 'var(--ink)', fontWeight: 500, marginTop: 4 }}>{me.bio}</p>
           </div>
           <div className="stack" style={{ gap: 10 }}>
+            <span className="eyebrow">Looking for</span>
+            <div className="row wrap" style={{ gap: 8 }}>{me.seeking.map((g) => <Chip key={g}>{g}</Chip>)}</div>
+          </div>
+          <div className="stack" style={{ gap: 10 }}>
             <span className="eyebrow">Interests</span>
-            <div className="row wrap" style={{ gap: 8 }}>{me.interests.map((i) => <Chip key={i} cat={window.DB.tag(i).cat}>{i}</Chip>)}</div>
+            <div className="row wrap" style={{ gap: 8 }}>{store.interests.map((i) => <Chip key={i} cat={window.DB.tag(i).cat}>{i}</Chip>)}</div>
           </div>
           <div className="stack" style={{ gap: 10 }}>
             <span className="eyebrow">Your verified channels</span>
@@ -38,8 +44,12 @@ function YourProfile() {
                 <span className="badge verified"><Icon name="check" />Verified</span>
               </div>
               <div className="card pad row" style={{ justifyContent: 'space-between' }}>
-                <div className="row" style={{ gap: 10 }}><Icon name="telegram" size={18} style={{ color: 'var(--cyan)' }} /><span className="muted">Telegram not verified</span></div>
-                <button className="btn soft sm" onClick={() => go('edit')}>Verify</button>
+                <div className="row" style={{ gap: 10 }}><Icon name="telegram" size={18} style={{ color: 'var(--cyan)' }} /><span className={tg === 'verified' ? 'mono' : 'muted'} style={tg === 'verified' ? { color: 'var(--ink)' } : undefined}>{tg === 'verified' ? '@you_tg' : 'Telegram not verified'}</span></div>
+                {tg === 'verified'
+                  ? <span className="badge verified"><Icon name="check" />Verified</span>
+                  : tg === 'checking'
+                  ? <span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Linking…</span>
+                  : <button className="btn soft sm" onClick={verifyTg}>Verify</button>}
               </div>
             </div>
           </div>
@@ -50,11 +60,18 @@ function YourProfile() {
 }
 
 function EditProfile() {
-  const { go, toast } = useNav();
+  const { go, toast, store } = useNav();
   const me = window.DB.ME;
   const [bio, setBio] = useState(me.bio);
+  const [city, setCity] = useState(me.city);
+  const [gender, setGender] = useState(me.gender);
+  const [seeking, setSeeking] = useState(me.seeking);
+  const [intModal, setIntModal] = useState(false);
+  const [about, setAbout] = useState('Designer who likes long walks and short emails. Looking for someone curious and a little stubborn.');
+  const bioMin = 15, aboutMin = 60;
+  const bioShort = bio.length < bioMin, aboutShort = about.length < aboutMin;
   return (
-    <AppFrame title="Edit profile" actions={<div className="row" style={{ gap: 8 }}><button className="btn ghost sm" onClick={() => go('me')}>Cancel</button><button className="btn primary sm" onClick={() => { toast('Profile saved', 'ok'); go('me'); }}>Save changes</button></div>}>
+    <AppFrame title="Edit profile" actions={<div className="row" style={{ gap: 8 }}><button className="btn ghost sm" onClick={() => go('me')}>Cancel</button><button className="btn primary sm" disabled={bioShort || aboutShort || seeking.length === 0} onClick={() => { Object.assign(me, { bio, city, gender, seeking }); toast('Profile saved', 'ok'); go('me'); }}>Save changes</button></div>}>
       <div className="center-col stack" style={{ gap: 22, maxWidth: 560, margin: '0 auto' }}>
         <div className="stack" style={{ gap: 10 }}>
           <span className="eyebrow">Photos</span>
@@ -62,14 +79,55 @@ function EditProfile() {
             {[0, 1, 2, 3].map((i) => <Photo key={i} label={i < 3 ? 'photo' : 'add'} tint={i} ratio="3 / 4" />)}
           </div>
         </div>
-        <Field label="Short bio"><input className="input" value={bio} maxLength={80} onChange={(e) => setBio(e.target.value)} /></Field>
-        <Field label="About"><textarea className="textarea" defaultValue="Designer who likes long walks and short emails. Looking for someone curious." /></Field>
+        <Field label="Short bio" error={bioShort ? `At least ${bioMin} characters` : null} hint={`${bio.length}/80 · min ${bioMin}`}><input className="input" value={bio} maxLength={80} onChange={(e) => setBio(e.target.value)} /></Field>
+        <Field label="About" error={aboutShort ? `At least ${aboutMin} characters` : null} hint={`${about.length}/400 · min ${aboutMin}`}><textarea className="textarea" maxLength={400} value={about} onChange={(e) => setAbout(e.target.value)} /></Field>
+        <div className="row" style={{ gap: 14 }}>
+          <Field label="Gender / presentation"><GenderPicker value={gender} onChange={setGender} /></Field>
+        </div>
+        <Field label="Interested in" error={seeking.length === 0 ? 'Pick at least one' : null} hint="You’ll only see — and be seen by — matching people, both ways."><GenderPicker multi value={seeking} onChange={setSeeking} /></Field>
+        <Field label="City" hint="We auto-detect with Google. Set on its own line."><CityField value={city} onChange={setCity} /></Field>
         <div className="stack" style={{ gap: 10 }}>
-          <span className="eyebrow">Interests</span>
-          <div className="row wrap" style={{ gap: 8 }}>{me.interests.map((i) => <Chip key={i} tap on cat={window.DB.tag(i).cat}>{i} ✕</Chip>)}<Chip tap><Icon name="plus" size={14} />Add</Chip></div>
+          <span className="eyebrow">Interests · {store.interests.length}/8</span>
+          <div className="row wrap" style={{ gap: 8 }}>
+            {store.interests.map((i) => <Chip key={i} tap on cat={window.DB.tag(i).cat} onClick={() => store.setInterests(store.interests.filter((x) => x !== i))}>{i} ✕</Chip>)}
+            <Chip tap onClick={() => setIntModal(true)}><Icon name="plus" size={14} />Add</Chip>
+          </div>
         </div>
       </div>
+      {intModal && <InterestsModal onClose={() => setIntModal(false)} />}
     </AppFrame>
+  );
+}
+
+function InterestsModal({ onClose }) {
+  const { store, toast } = useNav();
+  const { CATEGORIES, INTERESTS } = window.DB;
+  const toggle = (name) => {
+    const has = store.interests.includes(name);
+    if (has) store.setInterests(store.interests.filter((x) => x !== name));
+    else if (store.interests.length < 8) store.setInterests([...store.interests, name]);
+    else toast('Up to 8 interests', 'warn');
+  };
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+        <div className="row" style={{ justifyContent: 'space-between', padding: '18px 22px 0' }}>
+          <span className="eyebrow">Edit interests · {store.interests.length}/8</span>
+          <button className="btn icon sm ghost" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+        <div style={{ padding: '14px 22px 22px' }} className="stack">
+          {Object.entries(CATEGORIES).map(([key, c]) => (
+            <div key={key} className="stack" style={{ gap: 9, marginBottom: 6 }}>
+              <span className="row" style={{ gap: 7, fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}><span className="dot" style={{ background: `oklch(0.7 0.13 ${c.hue})` }} />{c.label}</span>
+              <div className="row wrap" style={{ gap: 8 }}>
+                {INTERESTS[key].map((name) => <Chip key={name} tap on={store.interests.includes(name)} cat={key} onClick={() => toggle(name)}>{name}</Chip>)}
+              </div>
+            </div>
+          ))}
+          <button className="btn primary lg block" style={{ marginTop: 6 }} onClick={onClose}>Done</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -95,7 +153,7 @@ function Settings() {
       <div className="center-col stack" style={{ gap: 26, maxWidth: 600, margin: '0 auto' }}>
         <div className="stack" style={{ gap: 12 }}>
           <span className="eyebrow">Account</span>
-          <SettingRow icon="mail" title="Email & sign-in" desc="you@example.com · signed in with a code" onClick={() => toast('Account settings')} />
+          <SettingRow icon="mail" title="Email & sign-in" desc="you@example.com · signed in with a code" />
           <SettingRow icon="user" title="Edit profile" desc="Photos, bio, interests, channels" onClick={() => go('edit')} />
         </div>
 
@@ -107,10 +165,20 @@ function Settings() {
         </div>
 
         <div className="stack" style={{ gap: 12 }}>
+          <span className="eyebrow">Requests</span>
+          <SettingRow icon="send" title="Daily request limit" desc="Up to 13 successful handle requests per rolling 24 hours"><span className="badge neutral">13 / 24h</span></SettingRow>
+          <div className="card pad" style={{ background: 'var(--surface-2)', border: 'none', display: 'flex', gap: 10 }}>
+            <Icon name="info" size={16} style={{ color: 'var(--violet)', flex: 'none' }} />
+            <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>Requests are limited to keep things calm and reduce spam. Only successful Instagram or Telegram requests count — failed eligibility checks, duplicate pending requests, and accepting or declining don’t. Safety systems may temporarily lower the limit for suspicious activity.</p>
+          </div>
+        </div>
+
+        <div className="stack" style={{ gap: 12 }}>
           <span className="eyebrow">Ads & privacy</span>
+          <SettingRow icon="eye" title="Ad experience" desc="See how ads work, and manage personalization consent" onClick={() => go('ad-experience')} />
           <SettingRow icon="info" title="Personalized ads" desc="Managed via Google’s certified consent. Turn off for non-personalized ads."><Switch checked={ads} onChange={setAds} /></SettingRow>
-          <SettingRow icon="shield" title="Safety center" desc="Report, block, appeals, data export" onClick={() => toast('Safety center is part of the next build pass')} />
-          <SettingRow icon="eye" title="Data export" desc="Download a copy of your data" onClick={() => toast('Data export requested', 'ok')} />
+          <SettingRow icon="shield" title="Safety center" desc="Report, block, appeals, data export" onClick={() => go('safety-center')} />
+          <SettingRow icon="eye" title="Data export" desc="Download a copy of your data" onClick={() => go('data-export')} />
         </div>
 
         <div className="stack" style={{ gap: 12 }}>
