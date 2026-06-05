@@ -1,6 +1,6 @@
 /* lite.dating — admin surfaces */
 
-const ADMIN_USER = { handle: 'admin_derya', role: 'Admin', initials: 'AD' };
+const ADMIN_USER = { handle: 'admin_derya', role: 'Admin', initials: 'DK' };
 
 /* ---------- chart primitives (CSS only) ---------- */
 function KPI({ label, value, delta, up, hint }) {
@@ -206,17 +206,17 @@ function AdminApp() {
   const nav = [
     { label: 'Insights', items: [['overview', 'Overview', 'grid'], ['revenue', 'Revenue', 'info'], ['visitors', 'Visitors', 'compass']] },
     { label: 'Trust & safety', items: [['moderation', 'Moderation', 'flag', window.TS.CASES.length], ['appeals', 'Appeals', 'info', window.TS.APPEALS.length], ['risk', 'Risk signals', 'shield']] },
-    { label: 'Verification', items: [['ig', 'Instagram', 'instagram', window.TS.IG_QUEUE.length], ['photo', 'Photos', 'camera', window.TS.PHOTO_QUEUE.length], ['reverify', 'Re-verify', 'lock', window.TS.REVERIFY_QUEUE.length]] },
+    { label: 'Verification', items: [['ig', 'Instagram', 'instagram', window.TS.IG_QUEUE.length], ['telegram', 'Telegram', 'telegram', window.TS.TG_QUEUE.length], ['photo', 'Photos', 'camera', window.TS.PHOTO_QUEUE.length], ['reverify', 'Re-verify', 'lock', window.TS.REVERIFY_QUEUE.length]] },
     { label: 'Operations', items: [['ads', 'Ad compliance', 'eye'], ['audit', 'Audit logs', 'copy'], ['policy', 'Policy templates', 'star']] },
     { label: 'Team & legal', items: [['team', 'Moderators', 'user'], ['roles', 'Roles', 'lock'], ['legal', 'Legal & crawler', 'info']] },
-    { label: 'Leave', items: [['exit', 'Exit to site', 'logout']] },
+    { label: 'Leave', items: [['owner', 'Switch to Owner', 'shield'], ['exit', 'Exit to site', 'logout']] },
   ];
-  const onNav = (k) => { if (k === 'exit') return go('landing'); setView(k); };
-  const titles = { overview: 'Overview', revenue: 'Revenue', visitors: 'Visitors', moderation: 'Moderation queue', 'report-detail': activeCase ? `Case ${activeCase.id}` : 'Case', appeals: 'Appeals', risk: 'Risk signals', ig: 'Instagram queue', photo: 'Photo queue', reverify: 'Re-verification', ads: 'Ad compliance', audit: 'Audit logs', policy: 'Policy templates', team: 'Moderators', roles: 'Roles & permissions', legal: 'Legal & crawler' };
+  const onNav = (k) => { if (k === 'exit') return go('landing'); if (k === 'owner') return go('owner'); setView(k); };
+  const titles = { overview: 'Overview', revenue: 'Revenue', visitors: 'Visitors', moderation: 'Moderation queue', 'report-detail': activeCase ? `Case ${activeCase.id}` : 'Case', appeals: 'Appeals', risk: 'Risk signals', ig: 'Instagram queue', telegram: 'Telegram queue', photo: 'Photo queue', reverify: 'Re-verification queue', ads: 'Ad compliance', audit: 'Audit logs', policy: 'Policy templates', team: 'Moderators', roles: 'Roles & permissions', legal: 'Legal & crawler' };
   const screens = {
     overview: <AdminOverview onNav={setView} />, revenue: <AdminRevenue />, visitors: <AdminVisitors />,
     moderation: <AdminModeration onOpen={openCase} />, 'report-detail': activeCase && <AdminReportDetail c={activeCase} onBack={() => setView('moderation')} />,
-    appeals: <AdminAppeals />, risk: <AdminRisk />, ig: <AdminIG />, photo: <AdminPhoto />, reverify: <AdminReverify />,
+    appeals: <AdminAppeals />, risk: <AdminRisk />, ig: <AdminIG />, telegram: <AdminTelegram />, photo: <AdminPhoto />, reverify: <AdminReverify />,
     ads: <AdminAdCompliance />, audit: <AdminAudit />, policy: <AdminPolicyTemplates />, team: <AdminModerators />, roles: <AdminRoles />, legal: <AdminLegal />,
   };
   return (

@@ -53,7 +53,7 @@ function NativeAd() {
     <div className="card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', border: '1px dashed var(--line)' }}>
       <div className="row" style={{ justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid var(--line-soft)' }}>
         <span className="ad-label"><Icon name="info" size={12} />Advertisement</span>
-        <span className="faint" style={{ fontSize: 11 }}>Google</span>
+        <span className="faint" style={{ fontSize: 11 }}>Sponsored</span>
       </div>
       <div className="ph-stripe" style={{ aspectRatio: '4 / 3', display: 'grid', placeItems: 'center', background: 'var(--surface-2)' }}>
         <span className="ph-label">native ad creative</span>
@@ -65,8 +65,16 @@ function NativeAd() {
   );
 }
 
-function FiltersModal({ loc, setLoc, dist, setDist, onClose }) {
+function FiltersModal({ draft, setDraft, onApply, onClear, onClose }) {
   const me = window.DB.ME;
+  const noChannel = !draft.ig && !draft.tg;
+  const ageBad = draft.ageMin > draft.ageMax;
+  const canApply = !noChannel && !ageBad;
+  const Check = ({ on, label, icon, onToggle }) => (
+    <label className="card pad row" style={{ gap: 10, cursor: 'pointer', alignItems: 'center', borderColor: on ? 'var(--violet)' : 'var(--line)', flex: 1 }} onClick={onToggle}>
+      <CheckBox on={on} /><Icon name={icon} size={16} style={{ color: icon === 'instagram' ? 'var(--violet)' : 'var(--cyan)' }} /><span style={{ fontSize: 13.5, color: 'var(--ink)', fontWeight: 500 }}>{label}</span>
+    </label>
+  );
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460 }}>
@@ -75,35 +83,47 @@ function FiltersModal({ loc, setLoc, dist, setDist, onClose }) {
           <button className="btn icon sm ghost" onClick={onClose}><Icon name="x" size={16} /></button>
         </div>
         <div style={{ padding: '14px 22px 22px' }} className="stack">
-          {/* seeked genders — disabled, set from profile */}
           <Field label="Looking for" hint="Set in your profile — changing who you’re shown to keeps matching mutual.">
             <GenderPicker multi disabled value={me.seeking} onChange={() => {}} />
           </Field>
-          <div className="card pad" style={{ background: 'var(--surface-2)', border: 'none', display: 'flex', gap: 9, marginTop: 2, marginBottom: 6 }}>
-            <Icon name="info" size={15} style={{ color: 'var(--violet)', flex: 'none' }} />
-            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>You only ever see — and are seen by — people whose preferences match yours both ways. Edit this in <strong style={{ color: 'var(--ink)' }}>Your profile</strong>.</span>
-          </div>
           <div className="hr" />
+          <Field label="Verified channels" error={noChannel ? 'Choose at least one verified channel.' : null} hint={noChannel ? null : draft.ig && draft.tg ? 'Showing people who verified both.' : draft.ig ? 'Showing people with Instagram verified.' : 'Showing people with Telegram verified.'}>
+            <div className="row" style={{ gap: 10 }}>
+              <Check on={draft.ig} label="Instagram verified" icon="instagram" onToggle={() => setDraft({ ...draft, ig: !draft.ig })} />
+              <Check on={draft.tg} label="Telegram verified" icon="telegram" onToggle={() => setDraft({ ...draft, tg: !draft.tg })} />
+            </div>
+          </Field>
+          <div className="hr" />
+          <Field label="Age range" error={ageBad ? 'Minimum must be at or below maximum.' : null}>
+            <div className="row" style={{ gap: 10, alignItems: 'center' }}>
+              <input className="input" type="number" min="18" max="99" value={draft.ageMin} onChange={(e) => setDraft({ ...draft, ageMin: Number(e.target.value) })} style={{ width: 80 }} />
+              <span className="muted">to</span>
+              <input className="input" type="number" min="18" max="99" value={draft.ageMax} onChange={(e) => setDraft({ ...draft, ageMax: Number(e.target.value) })} style={{ width: 80 }} />
+            </div>
+          </Field>
           <Field label="Location">
-            <CityField value={loc} onChange={setLoc} placeholder="Anywhere — set location" compact />
+            <CityField value={draft.loc} onChange={(v) => setDraft({ ...draft, loc: v })} placeholder="Anywhere — set location" compact />
           </Field>
-          <Field label={`Maximum distance · ${dist} km`}>
-            <input type="range" min="5" max="2500" step="5" value={dist} onChange={(e) => setDist(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--violet)' }} />
+          <Field label={`Maximum distance · ${draft.dist} km`}>
+            <input type="range" min="5" max="2500" step="5" value={draft.dist} onChange={(e) => setDraft({ ...draft, dist: Number(e.target.value) })} style={{ width: '100%', accentColor: 'var(--violet)' }} />
           </Field>
-          <button className="btn primary lg block" style={{ marginTop: 8 }} onClick={onClose}>Show results</button>
+          <div className="row" style={{ gap: 10, marginTop: 8 }}>
+            <button className="btn ghost" onClick={onClear}>Clear filters</button>
+            <button className="btn primary" style={{ flex: 1 }} disabled={!canApply} onClick={onApply}>{canApply ? 'Apply filters' : noChannel ? 'Choose a channel' : 'Fix age range'}</button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function FilterBar({ loc, setLoc, onOpenFilters, tab, setTab, newCount }) {
+function FilterBar({ loc, onClearLoc, onOpenFilters, tab, setTab, newCount }) {
   const tabs = [['nearby', 'Nearby'], ['new', 'New'], ['active', 'Active']];
   return (
     <div className="row wrap" style={{ gap: 10, marginBottom: 20 }}>
-      <div style={{ flex: 1, minWidth: 200 }}>
-        <CityField value={loc} onChange={setLoc} placeholder="Anywhere — set location" compact />
-      </div>
+      {loc
+        ? <div className="badge neutral" style={{ flex: 1, minWidth: 160, justifyContent: 'space-between', padding: '0 6px 0 12px', height: 44 }}><span className="row" style={{ gap: 7 }}><Icon name="pin" size={14} />{loc}</span><button className="btn icon sm ghost" onClick={onClearLoc} title="Clear location"><Icon name="x" size={14} /></button></div>
+        : <button className="btn ghost" style={{ flex: 1, minWidth: 160, height: 44, justifyContent: 'flex-start' }} onClick={onOpenFilters}><Icon name="pin" size={16} />Anywhere — set location</button>}
       <div className="seg">
         {tabs.map(([k, label]) => (
           <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)} style={{ position: 'relative' }}>
@@ -119,37 +139,54 @@ function FilterBar({ loc, setLoc, onOpenFilters, tab, setTab, newCount }) {
 
 function Discover() {
   const { store } = useNav();
-  const [loc, setLoc] = useState('');
-  const [dist, setDist] = useState(2500);
   const [tab, setTab] = useState('nearby');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const DEFAULTS = { ig: true, tg: true, ageMin: 18, ageMax: 99, loc: '', dist: 2500 };
+  const [applied, setApplied] = useState(DEFAULTS);
+  const [draft, setDraft] = useState(DEFAULTS);
   const me = window.DB.ME;
   const all = window.DB.PROFILES;
-  const cityToken = (loc || '').split(',')[0].trim().toLowerCase();
+  const cityToken = (applied.loc || '').split(',')[0].trim().toLowerCase();
   const matched = all.filter((p) => window.DB.mutualGender(me, p) && !store.isBlocked(p.id));
   const newCount = matched.filter((p) => p.newToday).length;
   const list = matched.filter((p) => {
     const matchesLoc = !cityToken || p.city.toLowerCase().includes(cityToken);
-    const within = p.dist <= dist;
+    const within = p.dist <= applied.dist;
     const matchesTab = tab === 'new' ? p.newToday : tab === 'active' ? p.online : true;
-    return matchesLoc && within && matchesTab;
+    const matchesAge = p.age >= applied.ageMin && p.age <= applied.ageMax;
+    const matchesCh = (!applied.ig || p.channels.instagram.verified) && (!applied.tg || p.channels.telegram.verified);
+    return matchesLoc && within && matchesTab && matchesAge && matchesCh;
   });
   if (tab === 'nearby') list.sort((a, b) => a.dist - b.dist);
-  // build grid items with the first native ad after ~14 cards (not immediately)
+  // build grid items: first ad after 19 profile cards, then every 13 (ads not counted as cards)
   const items = [];
   list.forEach((p, i) => {
     items.push(<ProfileCard key={p.id} p={p} tint={i} />);
-    if (i === 13) items.push(<NativeAd key="ad" />);
+    if (i >= 18 && (i - 18) % 13 === 0) items.push(<NativeAd key={'ad' + i} />);
   });
+  const nonDefault = applied.loc || applied.dist !== 2500 || !applied.ig || !applied.tg || applied.ageMin !== 18 || applied.ageMax !== 99;
+  const openFilters = () => { setDraft(applied); setFiltersOpen(true); };
+  const apply = () => { setApplied(draft); setFiltersOpen(false); };
+  const clear = () => { setDraft(DEFAULTS); setApplied(DEFAULTS); };
   return (
     <AppFrame title="Discover">
-      <FilterBar loc={loc} setLoc={setLoc} onOpenFilters={() => setFiltersOpen(true)} tab={tab} setTab={setTab} newCount={newCount} />
-      {loc && <p className="muted" style={{ fontSize: 13, marginTop: -8, marginBottom: 16 }}><Icon name="pin" size={13} style={{ verticalAlign: '-2px' }} /> Showing people near <strong style={{ color: 'var(--ink)' }}>{loc}</strong> · <button onClick={() => setLoc('')} style={{ background: 'none', border: 'none', color: 'var(--violet)', cursor: 'pointer', fontWeight: 600, fontSize: 13, padding: 0 }}>clear</button></p>}
+      <FilterBar loc={applied.loc} onClearLoc={() => setApplied({ ...applied, loc: '' })} onOpenFilters={openFilters} tab={tab} setTab={setTab} newCount={newCount} />
+      {nonDefault && (
+        <div className="row wrap" style={{ gap: 8, marginTop: -8, marginBottom: 16, alignItems: 'center' }}>
+          <span className="faint" style={{ fontSize: 12 }}>Active filters:</span>
+          {applied.ig && <span className="badge ig" style={{ fontSize: 11 }}><Icon name="instagram" />IG verified</span>}
+          {applied.tg && <span className="badge tg" style={{ fontSize: 11 }}><Icon name="telegram" />TG verified</span>}
+          {(applied.ageMin !== 18 || applied.ageMax !== 99) && <span className="badge neutral" style={{ fontSize: 11 }}>{applied.ageMin}–{applied.ageMax}</span>}
+          {applied.loc && <span className="badge neutral" style={{ fontSize: 11 }}><Icon name="pin" size={11} />{applied.loc}</span>}
+          {applied.dist !== 2500 && <span className="badge neutral" style={{ fontSize: 11 }}>≤{applied.dist} km</span>}
+          <button onClick={clear} style={{ background: 'none', border: 'none', color: 'var(--violet)', cursor: 'pointer', fontWeight: 600, fontSize: 12, padding: 0 }}>Clear</button>
+        </div>
+      )}
       {list.length === 0
         ? <DiscoverEmpty narrow />
         : <div className="disc-grid">{items}</div>}
       <p className="faint tac" style={{ fontSize: 12.5, marginTop: 28 }}>You’ve reached the end of nearby profiles. Widen your distance in Filters to see more.</p>
-      {filtersOpen && <FiltersModal loc={loc} setLoc={setLoc} dist={dist} setDist={setDist} onClose={() => setFiltersOpen(false)} />}
+      {filtersOpen && <FiltersModal draft={draft} setDraft={setDraft} onApply={apply} onClear={clear} onClose={() => setFiltersOpen(false)} />}
     </AppFrame>
   );
 }

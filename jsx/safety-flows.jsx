@@ -62,7 +62,7 @@ function ReportFlow({ offPlatform }) {
         <div className="tac stack" style={{ alignItems: 'center', gap: 16, padding: '40px 0' }}>
           <div style={{ width: 72, height: 72, borderRadius: 22, background: 'var(--green-w)', display: 'grid', placeItems: 'center', color: 'var(--green)' }}><Icon name="check" size={32} /></div>
           <h1 style={{ fontSize: 24 }}>Thank you — we’ve got it</h1>
-          <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.55, maxWidth: 400 }}>Our safety team reviews every report. You stay anonymous — the reported person is never told who reported them. They are notified by email and in-app that a report was filed against their account{handle ? ` (${channel} ${handle})` : ''}.</p>
+          <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.55, maxWidth: 420 }}>Our safety team reviews every report. You stay anonymous — the reported person will never learn who reported them. If action is taken, they may receive a notice with the reason category.</p>
           <span className="badge neutral mono">Case ref · R-{Math.floor(1000 + Math.random() * 9000)}</span>
           <div className="row" style={{ gap: 10, marginTop: 8 }}>
             <button className="btn ghost" onClick={() => go('safety-center')}>Safety center</button>
@@ -389,9 +389,45 @@ function AdsPausedNote() {
   );
 }
 
+function DecisionNoticeModal({ n, onClose, onAppeal }) {
+  return (
+    <div className="overlay" onClick={onClose} style={{ zIndex: 120 }}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+        <div className="row" style={{ justifyContent: 'space-between', padding: '18px 22px 0' }}>
+          <span className="eyebrow">Decision notice</span>
+          <button className="btn icon sm ghost" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+        <div style={{ padding: '12px 22px 22px' }} className="stack">
+          <h2 style={{ fontSize: 20 }}>{n.decision}</h2>
+          <div className="card pad stack" style={{ gap: 10, marginTop: 4 }}>
+            <Row k="Reason category" v={n.reason} />
+            <Row k="Policy code" v={<span className="mono">{n.policy}</span>} />
+            <Row k="Action taken" v={n.action} />
+            <Row k="Applied" v={n.applied} />
+            <Row k="Appeal window" v={<strong style={{ color: 'var(--ink)' }}>{n.window}</strong>} />
+            <Row k="Target response" v={n.response} />
+            <Row k="Review" v={<span className="row" style={{ gap: 6, flexWrap: 'wrap' }}>{n.ai && <span className="badge neutral">AI-assisted</span>}{n.human && <span className="badge verified"><Icon name="check" />Human-reviewed</span>}</span>} />
+          </div>
+          <div className="card pad" style={{ background: 'var(--surface-2)', border: 'none' }}>
+            <strong style={{ color: 'var(--ink)', fontSize: 13.5 }}>Your options</strong>
+            <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5, marginTop: 4 }}>You can appeal for an independent human review within the appeal window. The decision stays in place until an appeal outcome is reached.</p>
+          </div>
+          {n.appeal && <button className="btn primary lg block" onClick={() => { onClose(); onAppeal(); }}><Icon name="info" size={16} />Appeal this decision</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ActiveDecisions() {
   const { go } = useNav();
   const [status, setStatus] = useState('hold');
+  const [noticeOpen, setNoticeOpen] = useState(null);
+  const NOTICES = {
+    hold: { decision: 'Visibility hold', reason: 'Harassment', policy: 'P-3.2', action: 'Your profile is hidden from Discover', applied: '2 days ago', window: '6 months from the decision', response: 'within 5 days of appeal', ai: true, human: true, appeal: true },
+    suspended: { decision: 'Suspension (7 days)', reason: 'Spam / solicitation', policy: 'P-5.1', action: 'Browsing and new requests are paused', applied: 'Today', window: '6 months from the decision', response: 'within 5 days of appeal', ai: true, human: true, appeal: true },
+  };
+  const openNotice = (k) => setNoticeOpen(NOTICES[k]);
 
   const views = {
     good: (
@@ -416,7 +452,7 @@ function ActiveDecisions() {
         <AdsPausedNote />
         <div className="row wrap" style={{ gap: 10 }}>
           <button className="btn primary" onClick={() => go('appeal')}><Icon name="info" size={16} />Appeal this decision</button>
-          <button className="btn ghost">Read full notice</button>
+          <button className="btn ghost" onClick={() => openNotice('hold')}>Read full notice</button>
         </div>
       </div>
     ),
@@ -432,7 +468,7 @@ function ActiveDecisions() {
         ]} />
         <div className="row wrap" style={{ gap: 10 }}>
           <button className="btn primary" onClick={() => go('appeal')}><Icon name="info" size={16} />Appeal this decision</button>
-          <button className="btn ghost">Read full notice</button>
+          <button className="btn ghost" onClick={() => openNotice('suspended')}>Read full notice</button>
         </div>
       </div>
     ),
@@ -476,6 +512,7 @@ function ActiveDecisions() {
         {STATUS_PREVIEWS.map(([k, label]) => <button key={k} className={status === k ? 'on' : ''} onClick={() => setStatus(k)}>{label}</button>)}
       </div>
       <div className="center-col fade-in" key={status} style={{ maxWidth: 640, margin: 0 }}>{views[status]}</div>
+      {noticeOpen && <DecisionNoticeModal n={noticeOpen} onClose={() => setNoticeOpen(null)} onAppeal={() => go('appeal')} />}
     </AppFrame>
   );
 }

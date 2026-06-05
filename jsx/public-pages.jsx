@@ -56,7 +56,7 @@ function Safety() {
           ['flag', 'Reports protect users', 'False reports harm users. We review both. Decisions come with a clear reason, and you can always appeal.'],
           ['eye', 'You control your data', 'Export your data or delete your account from the Safety center. Deletion removes your profile and pending requests.'],
           ['info', 'Ads stay out of safety', 'You will never see an ad inside a request, an accept screen, verification, reporting, or appeals. Ever.'],
-          ['lock', 'Ad consent is separate from signup', 'Ad and cookie choices are handled by Google’s certified consent system where required. Joining is never conditional on personalized ad consent — decline and still use everything.'],
+          ['lock', 'Ad consent is separate from signup', 'Ad and cookie choices are handled by a certified consent system where required. Joining is never conditional on personalized ad consent.'],
         ].map(([icon, t, d]) => (
           <div key={t} className="card pad" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--surface-2)', display: 'grid', placeItems: 'center', color: 'var(--violet)' }}><Icon name={icon} size={20} /></span>
@@ -127,7 +127,7 @@ function About() {
           No swipe mechanic. No in-app DMs to babysit. No password for anyone to leak. Just a respectful, consent-first introduction, with privacy and safety built into the foundation rather than bolted on later.
         </p>
         <div className="card pad" style={{ marginTop: 28 }}>
-          <p style={{ color: 'var(--ink)', fontWeight: 500 }}>lite.dating is operated by Halit Turan ARICAN as an individual operator based in Türkiye.</p>
+          <p className="muted" style={{ fontSize: 14 }}>Find operator and legal details on our <button onClick={() => go('contact')} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--violet)', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>Contact &amp; Legal</button> page.</p>
         </div>
       </div>
     </div>
@@ -135,6 +135,7 @@ function About() {
 }
 
 function Contact() {
+  const { toast } = useNav();
   const aliases = [
     ['support@lite.dating', 'General help', 'mail'],
     ['privacy@lite.dating', 'Privacy & data requests', 'lock'],
@@ -143,14 +144,21 @@ function Contact() {
     ['abuse@lite.dating', 'Report abuse', 'flag'],
     ['dsa@lite.dating', 'DSA / regulator contact', 'info'],
   ];
+  const copy = (email) => { try { navigator.clipboard && navigator.clipboard.writeText(email); } catch (e) {} toast(`Copied ${email}`, 'ok'); };
   return (
     <div className="pub-page section">
       <PageHead eyebrow="Contact" title="Reach the right desk." sub="We keep separate inboxes so your message gets to the people who can help." />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="how-grid">
         {aliases.map(([email, desc, icon]) => (
-          <div key={email} className="card pad row" style={{ gap: 14 }}>
-            <span style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--surface-2)', display: 'grid', placeItems: 'center', color: 'var(--violet)', flex: 'none' }}><Icon name={icon} size={19} /></span>
-            <div><div style={{ fontWeight: 600, color: 'var(--ink)' }} className="mono">{email}</div><div className="muted" style={{ fontSize: 13.5 }}>{desc}</div></div>
+          <div key={email} className="card pad row" style={{ gap: 14, justifyContent: 'space-between' }}>
+            <div className="row" style={{ gap: 14, minWidth: 0 }}>
+              <span style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--surface-2)', display: 'grid', placeItems: 'center', color: 'var(--violet)', flex: 'none' }}><Icon name={icon} size={19} /></span>
+              <div style={{ minWidth: 0 }}><div style={{ fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis' }} className="mono">{email}</div><div className="muted" style={{ fontSize: 13.5 }}>{desc}</div></div>
+            </div>
+            <div className="row" style={{ gap: 6, flex: 'none' }}>
+              <button className="btn ghost icon sm" title={`Copy ${email}`} onClick={() => copy(email)}><Icon name="copy" size={15} /></button>
+              <a className="btn soft sm" href={`mailto:${email}`} title={`Email ${email}`}><Icon name="mail" size={15} />Email</a>
+            </div>
           </div>
         ))}
       </div>
@@ -159,26 +167,4 @@ function Contact() {
   );
 }
 
-function LegalPlaceholder() {
-  const { go } = useNav();
-  const docs = [['Privacy Policy', 'How we collect, use, and protect your data.'], ['Terms of Service', 'The agreement between you and lite.dating.'], ['GDPR Notice', 'Your rights under EU data protection law.'], ['KVKK Aydınlatma Metni', 'Türkiye data protection disclosure.']];
-  return (
-    <div className="pub-page section">
-      <PageHead eyebrow="Legal" title="Plain-language summaries, full text on file." sub="Short summaries here; the complete documents are linked from each." />
-      <div className="stack" style={{ gap: 12 }}>
-        {docs.map(([t, d]) => (
-          <div key={t} className="card pad row" style={{ justifyContent: 'space-between', gap: 16 }}>
-            <div className="row" style={{ gap: 14 }}>
-              <Icon name="info" size={20} style={{ color: 'var(--violet)' }} />
-              <div><strong style={{ color: 'var(--ink)' }}>{t}</strong><p className="muted" style={{ fontSize: 13.5 }}>{d}</p></div>
-            </div>
-            <button className="btn ghost sm">Read full text<Icon name="arrowR" /></button>
-          </div>
-        ))}
-      </div>
-      <p className="faint" style={{ fontSize: 13, marginTop: 20 }}>Placeholder pages — full legal copy is maintained separately and surfaced through the legal update gate after sign-in. <a onClick={() => go('contact')} style={{ color: 'var(--violet)', cursor: 'pointer' }}>Contact legal@lite.dating</a>.</p>
-    </div>
-  );
-}
-
-Object.assign(window, { HowItWorks, Safety, WhyFree, About, Contact, LegalPlaceholder, PageHead });
+Object.assign(window, { HowItWorks, Safety, WhyFree, About, Contact, PageHead });

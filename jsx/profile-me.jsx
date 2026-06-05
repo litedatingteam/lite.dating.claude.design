@@ -85,7 +85,7 @@ function EditProfile() {
           <Field label="Gender / presentation"><GenderPicker value={gender} onChange={setGender} /></Field>
         </div>
         <Field label="Interested in" error={seeking.length === 0 ? 'Pick at least one' : null} hint="You’ll only see — and be seen by — matching people, both ways."><GenderPicker multi value={seeking} onChange={setSeeking} /></Field>
-        <Field label="City" hint="We auto-detect with Google. Set on its own line."><CityField value={city} onChange={setCity} /></Field>
+        <Field label="City" hint="We auto-detect your area. Set on its own line."><CityField value={city} onChange={setCity} /></Field>
         <div className="stack" style={{ gap: 10 }}>
           <span className="eyebrow">Interests · {store.interests.length}/8</span>
           <div className="row wrap" style={{ gap: 8 }}>
@@ -176,7 +176,7 @@ function Settings() {
         <div className="stack" style={{ gap: 12 }}>
           <span className="eyebrow">Ads & privacy</span>
           <SettingRow icon="eye" title="Ad experience" desc="See how ads work, and manage personalization consent" onClick={() => go('ad-experience')} />
-          <SettingRow icon="info" title="Personalized ads" desc="Managed via Google’s certified consent. Turn off for non-personalized ads."><Switch checked={ads} onChange={setAds} /></SettingRow>
+          <SettingRow icon="info" title="Personalized ads" desc="Managed through the certified consent system. Open consent options." onClick={() => go('ad-experience')}><Icon name="chevR" size={18} style={{ color: 'var(--faint)' }} /></SettingRow>
           <SettingRow icon="shield" title="Safety center" desc="Report, block, appeals, data export" onClick={() => go('safety-center')} />
           <SettingRow icon="eye" title="Data export" desc="Download a copy of your data" onClick={() => go('data-export')} />
         </div>

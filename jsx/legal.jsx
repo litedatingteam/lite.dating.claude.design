@@ -47,6 +47,50 @@ const LEGAL = {
     ],
     sections: ['Veri sorumlusunun kimliği', 'İşlenen kişisel veriler', 'İşleme amaçları', 'Hukuki sebepler', 'Aktarım & yurt dışı', 'Saklama süreleri', 'KVKK md. 11 haklarınız', 'Başvuru yöntemi & iletişim'],
   },
+  cookies: {
+    title: 'Cookie & Ads Policy', short: 'Cookie & Ads', version: 'v1.0', updated: '6 Jun 2026', contact: 'privacy@lite.dating',
+    intro: 'How lite.dating uses cookies and shows ads, and how your consent is handled.',
+    points: [
+      ['eye', 'Ads keep it free', 'lite.dating is free and ad-supported. Ads appear in browsing surfaces and on your own profile and edit-profile pages — never near requests, safety, verification or legal actions.'],
+      ['shield', 'Certified consent', 'In the EEA, UK and Switzerland, ad and cookie consent is collected through Google’s certified CMP (AdSense Privacy & messaging). Signup never depends on personalized-ad consent.'],
+      ['info', 'Ad technology', 'Ads are served via Google AdSense, with an ads.txt file and a DSA point-of-contact maintained for compliance.'],
+      ['lock', 'Your controls', 'Manage personalization anytime in Settings → Ad experience. Declining keeps the service fully usable with non-personalized ads.'],
+    ],
+    sections: ['What cookies we use', 'Essential vs optional cookies', 'Advertising & AdSense', 'Google-certified CMP & consent', 'ads.txt & DSA contact', 'Managing your choices', 'Retention of consent records'],
+  },
+  safetypolicy: {
+    title: 'Safety & Reporting Policy', short: 'Safety', version: 'v1.0', updated: '6 Jun 2026', contact: 'safety@lite.dating',
+    intro: 'How reporting, blocking and our safety review process work.',
+    points: [
+      ['flag', 'Reporting protects users', 'Reports are reviewed by our safety team. Reporters stay anonymous; false or malicious reports may restrict the reporter’s own account.'],
+      ['shield', 'What we act on', 'Harassment, impersonation, spam, sexual harassment, doxxing, off-platform harm, and anything involving minors (18+ service, zero tolerance).'],
+      ['eye', 'Evidence privacy', 'Evidence is stored privately, blurred by default, and only revealed to reviewers with a logged reason.'],
+      ['info', 'Outcomes & notice', 'If action is taken, the reported person may receive a notice with the reason category. They never learn who reported them.'],
+    ],
+    sections: ['How to report', 'Blocking', 'What we review', 'Evidence handling & privacy', 'Reporter anonymity', 'False-report consequences', 'Outcomes & notices'],
+  },
+  moderation: {
+    title: 'Moderation, Suspension & Appeal Policy', short: 'Moderation', version: 'v1.0', updated: '6 Jun 2026', contact: 'safety@lite.dating',
+    intro: 'How decisions are made, what actions exist, and how to appeal.',
+    points: [
+      ['shield', 'Reasoned decisions', 'Every decision cites a policy code and comes with a plain-language notice. AI may assist triage, but irreversible actions get human review.'],
+      ['clock', 'Action ladder', 'Warning → visibility hold → temporary suspension → permanent ban. Moderators recommend; Admins apply holds/suspensions; permanent bans need Owner approval.'],
+      ['info', 'Appeal window', 'You can appeal within 6 months. We aim to respond within 5 days, with an independent human review.'],
+      ['eye', 'Audit trail', 'Sensitive actions — evidence reveals, handle reveals, exports — are logged with actor, reason and timestamp.'],
+    ],
+    sections: ['Decision principles', 'AI-assisted vs human review', 'Action ladder', 'Roles & approval authority', 'Appeals (6-month window)', 'Target response times', 'Audit logging'],
+  },
+  contactlegal: {
+    title: 'Contact & Legal Notice', short: 'Contact & Legal', version: 'v1.0', updated: '6 Jun 2026', contact: 'legal@lite.dating',
+    intro: 'Operator identity and how to reach the right legal desk.',
+    points: [
+      ['user', 'Operator', 'lite.dating is operated by Halit Turan ARICAN as an individual operator based in Türkiye.'],
+      ['mail', 'Contact desks', 'support@, privacy@, legal@, safety@, abuse@ and dsa@lite.dating — each routed to the right team.'],
+      ['info', 'DSA / regulator contact', 'Reach our DSA point-of-contact at dsa@lite.dating.'],
+      ['lock', 'Postal / legal notice', 'For privacy we don’t publish a home address; a postal/legal notice process can be requested through legal@lite.dating.'],
+    ],
+    sections: ['Operator identity', 'Country of operation', 'Contact desks', 'Legal & DSA contact', 'Postal/legal notice process'],
+  },
 };
 
 function LegalDoc({ docKey }) {

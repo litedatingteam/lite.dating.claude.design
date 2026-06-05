@@ -103,31 +103,89 @@ function ProfileDetail({ id }) {
   if (!p) return <AppFrame title="Profile"><p className="muted">Profile not found.</p></AppFrame>;
 
   const mutual = new Set(store.interests);
-  const incoming = store.inbox.find((r) => r.from === p.id);
-  const conn = store.connections.find((c) => c.who === p.id && !c.expired && c.daysLeft > 0);
-  const sentPending = store.sent.find((s) => s.to === p.id && s.status === 'pending');
-  const sentAccepted = store.sent.find((s) => s.to === p.id && s.status === 'accepted');
-  const sentDeclined = store.sent.find((s) => s.to === p.id && s.status === 'declined');
   const CH = { instagram: 'Instagram', telegram: 'Telegram' };
-  const other = (ch) => (ch === 'instagram' ? 'telegram' : 'instagram');
-  const eligible = (ch) => me.channels[ch].verified && p.channels[ch].verified;
-  const unlockedChannel = conn ? conn.channel : (sentAccepted ? sentAccepted.channel : null);
-  const unlockedHandle = conn ? conn.handle : (sentAccepted ? '@' + p.id : null);
 
-  const RequestBtn = ({ ch, kind }) => (
-    <button className={`btn ${kind || (ch === 'instagram' ? 'primary' : 'ink')}`} disabled={!eligible(ch)} title={eligible(ch) ? '' : `Both of you must verify ${CH[ch]} first`} onClick={() => setModal(ch)}>
-      <Icon name={ch} size={17} />Request {CH[ch]}
-    </button>
-  );
-  const HandleRow = ({ ch, handle, daysLeft }) => (
-    <div className="card" style={{ padding: 14, background: 'var(--green-w)', border: 'none' }}>
-      <div className="row" style={{ justifyContent: 'space-between', gap: 10 }}>
-        <div className="row" style={{ gap: 10 }}><Icon name={ch} size={18} style={{ color: ch === 'instagram' ? 'var(--violet)' : 'var(--cyan)' }} /><span className="mono" style={{ fontSize: 15, color: 'var(--ink)', fontWeight: 700 }}>{handle}</span></div>
-        <button className="btn soft sm" onClick={() => toast('Handle copied', 'ok')}><Icon name="copy" size={14} />Copy</button>
+  // ---- per-channel relationship state (keyed by user_id + channel) ----
+  const channelState = (ch) => {
+    const meV = me.channels[ch].verified;
+    const theyV = p.channels[ch].verified;
+    const incoming = store.inbox.find((r) => r.from === p.id && r.channel === ch);
+    const conn = store.connections.find((c) => c.who === p.id && c.channel === ch);
+    const sent = store.sent.find((s) => s.to === p.id && s.channel === ch);
+    let state = 'unavailable';
+    if (conn && (conn.expired || conn.daysLeft <= 0)) state = 'expired';
+    else if (conn) state = 'unlocked';
+    else if (incoming) state = 'incoming';
+    else if (sent && sent.status === 'pending') state = 'pending';
+    else if (sent && sent.status === 'declined') state = 'declined';
+    else if (sent && sent.status === 'accepted') state = 'unlocked';
+    else if (meV && theyV) state = 'available';
+    else state = 'unavailable';
+    return { meV, theyV, incoming, conn, sent, state };
+  };
+
+  const ChannelRow = ({ ch }) => {
+    const s = channelState(ch);
+    const handle = s.conn ? s.conn.handle : window.DB.handleFor(p.id, ch);
+    const tone = { unlocked: 'verified', incoming: 'ig', pending: 'pending', declined: 'neutral', expired: 'neutral', available: 'neutral', unavailable: 'neutral' }[s.state];
+    const stateLabel = { unlocked: 'Unlocked', incoming: 'Wants to trade', pending: 'Request sent', declined: 'Declined', expired: 'Expired here', available: 'Available to request', unavailable: !s.theyV ? 'They haven’t verified' : 'You haven’t verified' }[s.state];
+    return (
+      <div className="card" style={{ padding: 14, border: 'none', background: 'var(--surface)' }}>
+        <div className="row" style={{ justifyContent: 'space-between', gap: 10, marginBottom: s.state === 'unlocked' ? 12 : 10 }}>
+          <div className="row" style={{ gap: 10 }}>
+            <Icon name={ch} size={18} style={{ color: ch === 'instagram' ? 'var(--violet)' : 'var(--cyan)' }} />
+            <strong style={{ color: 'var(--ink)', fontSize: 14.5 }}>{CH[ch]}</strong>
+          </div>
+          <span className={`badge ${tone}`}>{s.state === 'unlocked' && <Icon name="check" size={12} />}{stateLabel}</span>
+        </div>
+
+        {/* unlocked → show handle + per-channel window + copy */}
+        {s.state === 'unlocked' && (
+          <div className="card" style={{ padding: 12, background: 'var(--green-w)', border: 'none' }}>
+            <div className="row" style={{ justifyContent: 'space-between', gap: 10 }}>
+              <span className="mono" style={{ fontSize: 15, color: 'var(--ink)', fontWeight: 700 }}>{handle}</span>
+              <button className="btn soft sm" onClick={() => toast('Handle copied', 'ok')}><Icon name="copy" size={14} />Copy</button>
+            </div>
+            {s.conn && <div className="row" style={{ gap: 7, marginTop: 8 }}><Icon name="clock" size={12} style={{ color: 'var(--muted)' }} /><span style={{ fontSize: 11.5, color: 'var(--muted)' }}>Visible here for {s.conn.daysLeft} more day{s.conn.daysLeft === 1 ? '' : 's'} · never disappears from {CH[ch]}.</span></div>}
+          </div>
+        )}
+
+        {/* incoming → accept (gated by own verification) / pass */}
+        {s.state === 'incoming' && (
+          <div className="stack" style={{ gap: 8 }}>
+            <span className="muted" style={{ fontSize: 12.5 }}>{p.name} asked to trade {CH[ch]}.</span>
+            <div className="row wrap" style={{ gap: 8 }}>
+              {s.meV
+                ? <button className="btn primary sm" onClick={() => { store.acceptRequest(s.incoming.id); toast(`You shared your ${CH[ch]} with ${p.name}`, 'ok'); }}><Icon name="check" size={14} />Accept & share</button>
+                : <button className="btn ink sm" onClick={() => go('settings')}><Icon name={ch} size={14} />Verify {CH[ch]} to accept</button>}
+              <button className="btn ghost sm" onClick={() => { store.declineRequest(s.incoming.id); toast('Request passed', 'warn'); }}>Pass</button>
+            </div>
+          </div>
+        )}
+
+        {/* pending → cancel */}
+        {s.state === 'pending' && (
+          <div className="row wrap" style={{ gap: 8 }}><button className="btn ghost sm" onClick={() => go('sent')}>View sent</button><button className="btn danger sm" onClick={() => { store.cancelRequest(p.id, ch); toast('Request cancelled', 'warn'); }}><Icon name="x" size={13} />Cancel request</button></div>
+        )}
+
+        {/* declined */}
+        {s.state === 'declined' && <span className="muted" style={{ fontSize: 12.5 }}>You can’t send another {CH[ch]} request to {p.name}.</span>}
+
+        {/* expired → re-request */}
+        {s.state === 'expired' && <button className="btn soft sm" onClick={() => setModal(ch)}><Icon name="arrowR" size={13} />Re-request {CH[ch]}</button>}
+
+        {/* available → request */}
+        {s.state === 'available' && <button className={`btn ${ch === 'instagram' ? 'primary' : 'ink'} sm`} onClick={() => setModal(ch)}><Icon name={ch} size={14} />Request {CH[ch]}</button>}
+
+        {/* unavailable → verify-your-own CTA or info */}
+        {s.state === 'unavailable' && (
+          !s.meV
+            ? <button className="btn soft sm" onClick={() => go('settings')}><Icon name={ch} size={13} />Verify your {CH[ch]}</button>
+            : <span className="muted" style={{ fontSize: 12.5 }}>{p.name} hasn’t verified {CH[ch]} yet.</span>
+        )}
       </div>
-      <div className="row" style={{ gap: 7, marginTop: 10 }}><Icon name="check" size={13} style={{ color: 'var(--green)' }} /><span style={{ fontSize: 12, color: 'var(--muted)' }}>{CH[ch]} unlocked{daysLeft != null ? ` · visible here for ${daysLeft} more day${daysLeft === 1 ? '' : 's'}` : ''}.</span></div>
-    </div>
-  );
+    );
+  };
 
   return (
     <AppFrame title="Profile" actions={<button className="btn ghost sm" onClick={() => go('discover')}><Icon name="arrowL" size={15} />Back to Discover</button>}>
@@ -144,39 +202,17 @@ function ProfileDetail({ id }) {
             <p style={{ fontSize: 16.5, color: 'var(--ink)', fontWeight: 500, marginTop: 4 }}>{p.bio}</p>
           </div>
 
-          {/* context-aware handle actions */}
+          {/* per-channel contact panel */}
           <div className="card pad" style={{ background: 'var(--grad-soft)', border: 'none' }}>
             <div className="row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
-              <strong style={{ color: 'var(--ink)' }}>Trade handles</strong>
-              <span className="faint" style={{ fontSize: 12 }}>Mutual consent unlocks it</span>
+              <strong style={{ color: 'var(--ink)' }}>Contact channels</strong>
+              <span className="faint" style={{ fontSize: 12 }}>Mutual consent unlocks each</span>
             </div>
-
-            {unlockedChannel ? (
-              <div className="stack" style={{ gap: 10 }}>
-                <HandleRow ch={unlockedChannel} handle={unlockedHandle} daysLeft={conn ? conn.daysLeft : null} />
-                {eligible(other(unlockedChannel)) && !store.sent.find((s) => s.to === p.id && s.channel === other(unlockedChannel)) &&
-                  <RequestBtn ch={other(unlockedChannel)} kind="soft" />}
-              </div>
-            ) : incoming ? (
-              <div className="stack" style={{ gap: 10 }}>
-                <span className="badge" style={{ alignSelf: 'flex-start' }}><Icon name="inbox" size={13} />{p.name} requested your {CH[incoming.channel]}</span>
-                <div className="row wrap" style={{ gap: 10 }}>
-                  <button className="btn primary" onClick={() => { store.acceptRequest(incoming.id); toast(`You shared your ${CH[incoming.channel]} with ${p.name}`, 'ok'); }}><Icon name="check" size={17} />Accept & share {CH[incoming.channel]}</button>
-                  <button className="btn ghost" onClick={() => { store.declineRequest(incoming.id); toast('Request passed', 'warn'); }}>Pass</button>
-                </div>
-                {eligible(other(incoming.channel)) && <div className="row wrap" style={{ gap: 10 }}><RequestBtn ch={other(incoming.channel)} kind="ink" /></div>}
-              </div>
-            ) : sentPending ? (
-              <div className="row wrap" style={{ gap: 10 }}><span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Request pending · {CH[sentPending.channel]}</span><button className="btn ghost sm" onClick={() => go('sent')}>View sent</button><button className="btn danger sm" onClick={() => { store.cancelRequest(p.id); toast('Request cancelled', 'warn'); }}><Icon name="x" size={14} />Cancel request</button></div>
-            ) : sentDeclined ? (
-              <div className="row" style={{ gap: 10 }}><span className="badge neutral"><Icon name="x" size={13} />Request declined — you can’t send another to {p.name}.</span></div>
-            ) : (
-              <div className="row wrap" style={{ gap: 10 }}>
-                {p.channels.instagram.verified && <RequestBtn ch="instagram" />}
-                {p.channels.telegram.verified && <RequestBtn ch="telegram" />}
-              </div>
-            )}
-            <p className="muted" style={{ fontSize: 12.5, marginTop: 12 }}>No chat box here by design. You request a verified handle; if {p.name} agrees, you continue the conversation where it already lives.</p>
+            <div className="stack" style={{ gap: 10 }}>
+              <ChannelRow ch="instagram" />
+              <ChannelRow ch="telegram" />
+            </div>
+            <p className="muted" style={{ fontSize: 12.5, marginTop: 12 }}>No chat box here by design. Each channel is requested and unlocked on its own — if {p.name} agrees, you continue the conversation where it already lives.</p>
           </div>
 
           {/* about */}
@@ -208,13 +244,6 @@ function ProfileDetail({ id }) {
             <button className="btn ghost sm" onClick={() => setBlockOpen(true)}><Icon name="x" size={15} />Block</button>
           </div>
         </div>
-      </div>
-      <div className="card" style={{ marginTop: 24, overflow: 'hidden', border: '1px dashed var(--line)' }}>
-        <div className="row" style={{ justifyContent: 'space-between', padding: '8px 14px', borderBottom: '1px solid var(--line-soft)' }}>
-          <span className="ad-label"><Icon name="info" size={12} />Advertisement</span>
-          <span className="faint" style={{ fontSize: 11 }}>Sponsored</span>
-        </div>
-        <div className="ad-frame" style={{ height: 90, display: 'grid', placeItems: 'center', borderRadius: 0, border: 'none', background: 'var(--surface-2)' }}><span className="ph-label">ad slot · kept clear of request actions</span></div>
       </div>
       {modal && <RequestModal p={p} channel={modal} onClose={() => setModal(null)} />}
       {blockOpen && <BlockModal name={p.name} onClose={() => setBlockOpen(false)} onConfirm={(report) => { store.block(p.id); toast(report ? `${p.name} blocked & reported — you won’t see each other` : `${p.name} blocked — you won’t see each other`, 'warn'); go('discover'); }} />}

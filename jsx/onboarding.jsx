@@ -30,7 +30,7 @@ function OnbBasics({ data, set }) {
       <Field label="Interested in" hint="Pick one or more. You’ll only see — and be seen by — people whose preferences match yours both ways.">
         <GenderPicker multi value={data.seeking} onChange={(v) => set({ seeking: v })} />
       </Field>
-      <Field label="City" hint="We auto-detect your area with Google, never your exact location. Change it anytime.">
+      <Field label="City" hint="We auto-detect your area, never your exact location. Change it anytime.">
         <CityField value={data.city} onChange={(v) => set({ city: v })} autoDetect />
       </Field>
       <label className="card row" style={{ gap: 12, padding: 14, cursor: 'pointer', background: data.adult ? 'var(--green-w)' : 'var(--surface)', border: data.adult ? 'none' : '1px solid var(--line)', borderRadius: 'var(--r-md)' }} onClick={() => set({ adult: !data.adult })}>
@@ -124,7 +124,7 @@ function ChannelHead({ type, state }) {
   return (
     <div className="row" style={{ gap: 12 }}>
       <span style={{ width: 42, height: 42, borderRadius: 12, background: type === 'instagram' ? 'var(--wash-pink)' : 'var(--wash-cyan)', display: 'grid', placeItems: 'center', color: type === 'instagram' ? 'var(--violet)' : 'var(--cyan)', flex: 'none' }}><Icon name={type} size={20} /></span>
-      <div><strong style={{ color: 'var(--ink)' }}>{label}</strong><p className="muted" style={{ fontSize: 13 }}>{state === 'verified' ? 'Verified — you can request this channel' : type === 'instagram' ? 'Confirm with a code in your bio' : 'Link through our Telegram bot'}</p></div>
+      <div><strong style={{ color: 'var(--ink)' }}>{label}</strong><p className="muted" style={{ fontSize: 13 }}>{state === 'verified' ? 'Verified — you can request this channel' : type === 'instagram' ? 'Confirm with a code in your bio' : 'Connect with a secure one-time link'}</p></div>
     </div>
   );
 }
@@ -133,7 +133,7 @@ function InstagramVerify({ state, set }) {
   const { toast } = useNav();
   const [code] = useState(() => 'lite-' + Math.random().toString(36).slice(2, 6).toUpperCase());
   const [handle, setHandle] = useState('');
-  const open = state === 'code' || state === 'checking';
+  const open = state === 'code' || state === 'checking' || state === 'pending';
   return (
     <div className="card pad stack" style={{ gap: 14 }}>
       <div className="row" style={{ justifyContent: 'space-between', gap: 12 }}>
@@ -142,6 +142,8 @@ function InstagramVerify({ state, set }) {
           ? <span className="badge verified"><Icon name="check" />Verified</span>
           : state === 'checking'
           ? <span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Checking bio…</span>
+          : state === 'pending'
+          ? <span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Pending 24h</span>
           : !open && <button className="btn soft sm" onClick={() => set('code')}>Verify</button>}
       </div>
 
@@ -165,11 +167,16 @@ function InstagramVerify({ state, set }) {
               <input className="input" style={{ paddingLeft: 26 }} placeholder="yourhandle" value={handle} onChange={(e) => setHandle(e.target.value.replace(/[^a-z0-9._]/gi, ''))} />
             </div>
           </div>
-          {state === 'checking'
+          {state === 'pending'
+            ? <div className="card pad stack" style={{ gap: 10, background: 'var(--amber-w)', border: 'none' }}>
+                <div className="row" style={{ gap: 9 }}><Icon name="clock" size={16} style={{ color: 'color-mix(in oklch, var(--amber), black 18%)', flex: 'none' }} /><span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Code found. Keep it in your bio — verification confirms after the 24-hour hold.</span></div>
+                <button className="btn soft sm" style={{ alignSelf: 'flex-start' }} onClick={() => { set('verified'); toast('Instagram verified', 'ok'); }}>Simulate 24h elapsed</button>
+              </div>
+            : state === 'checking'
             ? <div className="row" style={{ gap: 10, justifyContent: 'center', padding: 4 }}><span className="spinner" /><span className="muted" style={{ fontSize: 13 }}>Looking for your code…</span></div>
             : <div className="row" style={{ gap: 10 }}>
                 <button className="btn ghost sm" onClick={() => set('idle')}>Cancel</button>
-                <button className="btn primary sm" style={{ flex: 1 }} disabled={!handle} onClick={() => { set('checking'); setTimeout(() => { set('verified'); toast('Instagram verified', 'ok'); }, 1500); }}>I’ve added the code — check now</button>
+                <button className="btn primary sm" style={{ flex: 1 }} disabled={!handle} onClick={() => { set('checking'); setTimeout(() => set('pending'), 1400); }}>I added the code — check now</button>
               </div>}
           <div className="card pad" style={{ background: 'var(--amber-w)', border: 'none', display: 'flex', gap: 9, padding: 12 }}>
             <Icon name="clock" size={15} style={{ color: 'color-mix(in oklch, var(--amber), black 18%)', flex: 'none' }} />
@@ -183,29 +190,60 @@ function InstagramVerify({ state, set }) {
 
 function TelegramVerify({ state, set }) {
   const { toast } = useNav();
-  const open = state === 'bot' || state === 'linking';
+  // states: idle | link | waiting | verified | expired | taken
+  const [token] = useState(() => Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6));
+  const open = state === 'link' || state === 'waiting' || state === 'expired' || state === 'taken';
+  const url = `https://t.me/litedating_bot?start=${token}`;
   return (
     <div className="card pad stack" style={{ gap: 14 }}>
       <div className="row" style={{ justifyContent: 'space-between', gap: 12 }}>
         <ChannelHead type="telegram" state={state} />
         {state === 'verified'
           ? <span className="badge verified"><Icon name="check" />Verified</span>
-          : state === 'linking'
-          ? <span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Linking…</span>
-          : !open && <button className="btn soft sm" onClick={() => set('bot')}>Verify</button>}
+          : state === 'waiting'
+          ? <span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Waiting for Telegram…</span>
+          : !open && <button className="btn soft sm" onClick={() => set('link')}>Verify</button>}
       </div>
 
       {open && (
         <div className="stack" style={{ gap: 12 }}>
           <div className="hr" />
-          <span className="eyebrow">Link through our bot</span>
-          <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>Open <span className="mono" style={{ color: 'var(--ink)' }}>@litedating_bot</span> in Telegram and tap <strong style={{ color: 'var(--ink)' }}>Start</strong>. The bot confirms your account automatically over the Telegram API — no code to copy, nothing to keep in your profile.</p>
-          {state === 'linking'
-            ? <div className="row" style={{ gap: 10, justifyContent: 'center', padding: 4 }}><span className="spinner" /><span className="muted" style={{ fontSize: 13 }}>Waiting for the bot to confirm…</span></div>
-            : <div className="row" style={{ gap: 10 }}>
+          <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>Telegram verification uses a <strong style={{ color: 'var(--ink)' }}>secure one-time link</strong>. The link connects your Telegram account to your lite.dating account — your verified identity is bound to your Telegram <strong style={{ color: 'var(--ink)' }}>account</strong>, not just your @username (which can change).</p>
+
+          {state === 'expired' ? (
+            <div className="card pad stack" style={{ gap: 10, background: 'var(--red-w)', border: 'none' }}>
+              <div className="row" style={{ gap: 9 }}><Icon name="clock" size={16} style={{ color: 'var(--red)', flex: 'none' }} /><span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>This link expired before it was confirmed. Generate a fresh one to try again.</span></div>
+              <button className="btn ink sm" style={{ alignSelf: 'flex-start' }} onClick={() => set('link')}><Icon name="link" size={14} />Generate new secure link</button>
+            </div>
+          ) : state === 'taken' ? (
+            <div className="card pad stack" style={{ gap: 10, background: 'var(--red-w)', border: 'none' }}>
+              <div className="row" style={{ gap: 9 }}><Icon name="info" size={16} style={{ color: 'var(--red)', flex: 'none' }} /><span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>This Telegram account is already linked to another lite.dating account. Each account can verify only one Telegram identity.</span></div>
+              <button className="btn ghost sm" style={{ alignSelf: 'flex-start' }} onClick={() => set('idle')}>Use a different account</button>
+            </div>
+          ) : state === 'waiting' ? (
+            <div className="stack" style={{ gap: 12 }}>
+              <div className="row" style={{ gap: 10, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', padding: '10px 12px', justifyContent: 'space-between' }}>
+                <span className="mono" style={{ fontSize: 12.5, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>t.me/litedating_bot?start=…</span>
+                <button className="btn ghost sm" onClick={() => toast('Secure link copied', 'ok')}><Icon name="copy" size={14} />Copy</button>
+              </div>
+              <div className="row" style={{ gap: 10, justifyContent: 'center', padding: 4 }}><span className="spinner" /><span className="muted" style={{ fontSize: 13 }}>Waiting for the bot to confirm your account…</span></div>
+              <div className="row" style={{ gap: 8 }}>
+                {/* demo: let tester drive each terminal state */}
+                <button className="btn primary sm" style={{ flex: 1 }} onClick={() => { set('verified'); toast('Telegram verified', 'ok'); }}>Simulate confirmed</button>
+                <button className="btn ghost sm" onClick={() => set('expired')}>Link expired</button>
+                <button className="btn ghost sm" onClick={() => set('taken')}>Already used</button>
+              </div>
+            </div>
+          ) : (
+            <div className="stack" style={{ gap: 10 }}>
+              <span className="eyebrow">Step 1 · Open your secure link</span>
+              <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>Opens <span className="mono" style={{ color: 'var(--ink)' }}>@litedating_bot</span> and tap <strong style={{ color: 'var(--ink)' }}>Start</strong>. The bot confirms your account — no code to keep in your profile.</p>
+              <div className="row" style={{ gap: 10 }}>
                 <button className="btn ghost sm" onClick={() => set('idle')}>Cancel</button>
-                <button className="btn ink sm" style={{ flex: 1 }} onClick={() => { set('linking'); setTimeout(() => { set('verified'); toast('Telegram verified', 'ok'); }, 1600); }}><Icon name="telegram" size={15} />Open Telegram bot</button>
-              </div>}
+                <button className="btn ink sm" style={{ flex: 1 }} onClick={() => set('waiting')}><Icon name="telegram" size={15} />Open secure Telegram link</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -261,11 +299,11 @@ function OnbVerify({ data, set }) {
       {/* consent — required one-time processing + optional reusable storage */}
       <label className="card pad row" style={{ gap: 12, cursor: 'pointer', alignItems: 'flex-start', borderColor: data.selfieConsent ? 'var(--green)' : 'var(--line)' }} onClick={() => set({ selfieConsent: !data.selfieConsent })}>
         <span style={{ marginTop: 1 }}><CheckBox green on={data.selfieConsent} /></span>
-        <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}><strong style={{ color: 'var(--ink)' }}>Required ·</strong> I understand this <strong style={{ color: 'var(--ink)' }}>one-time private selfie</strong> will be processed for verification review. It’s never shown to other users or used for ads.</span>
+        <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}><strong style={{ color: 'var(--ink)' }}>Required ·</strong> I understand that this private selfie will be processed for one-time verification review. No government ID is required — it’s never shown to other users and never used for ads.</span>
       </label>
       <label className="card pad row" style={{ gap: 12, cursor: 'pointer', alignItems: 'flex-start' }} onClick={() => set({ reuseSelfie: !data.reuseSelfie })}>
         <span style={{ marginTop: 1 }}><CheckBox on={data.reuseSelfie} /></span>
-        <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}><strong style={{ color: 'var(--ink)' }}>Optional ·</strong> Keep a <strong style={{ color: 'var(--ink)' }}>reusable reference selfie</strong> so future photo changes can be reviewed faster. Off by default — you can change this anytime, and request deletion. Leave it off to use a one-time check only.</span>
+        <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}><strong style={{ color: 'var(--ink)' }}>Optional ·</strong> Keep a reusable private reference selfie so future photo changes can be reviewed faster. Off by default — you can change this later in Consent settings.</span>
       </label>
 
       {submitted

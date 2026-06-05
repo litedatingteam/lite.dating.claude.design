@@ -14,7 +14,7 @@ const PALETTES = [
   ['oklch(0.70 0.15 350)', 'oklch(0.62 0.15 250)', 'oklch(0.74 0.12 196)'], // Lagoon
 ];
 
-const PUBLIC_SCREENS = ['landing', 'how', 'safety', 'free', 'about', 'contact', 'privacy', 'terms', 'gdpr', 'kvkk', 'legal', 'rules'];
+const PUBLIC_SCREENS = ['landing', 'how', 'safety', 'free', 'about', 'contact', 'privacy', 'terms', 'gdpr', 'kvkk', 'cookies', 'safetypolicy', 'moderation', 'contactlegal', 'legal', 'rules'];
 
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -56,7 +56,7 @@ function App() {
       setSent((s) => [{ id: 's' + Date.now(), to, channel, note, status: 'pending', when: 'now' }, ...s]);
       setRequestsUsed((n) => n + 1); // only successful requests count
     },
-    cancelRequest: (to) => setSent((s) => s.filter((x) => !(x.to === to && x.status === 'pending'))),
+    cancelRequest: (to, channel) => setSent((s) => s.filter((x) => !(x.to === to && (channel ? x.channel === channel : true) && x.status === 'pending'))),
     blocked,
     isBlocked: (id) => blocked.has(id),
     block: (id) => { setBlocked((s) => new Set(s).add(id)); setInbox((s) => s.filter((r) => r.from !== id)); setSent((s) => s.filter((x) => x.to !== id)); setConnections((s) => s.filter((c) => c.who !== id)); },
@@ -77,10 +77,33 @@ function App() {
       const req = inbox.find((r) => r.id === id);
       if (!req) return;
       setInbox((s) => s.filter((r) => r.id !== id));
-      const handles = { instagram: '@new.connect', telegram: '@new_t' };
-      setConnections((c) => [{ id: 'c' + Date.now(), who: req.from, channel: req.channel, handle: handles[req.channel], daysLeft: 14 }, ...c]);
+      setConnections((c) => [{ id: 'c' + Date.now(), who: req.from, channel: req.channel, handle: window.DB.handleFor(req.from, req.channel), daysLeft: 14 }, ...c]);
     },
     declineRequest: (id) => setInbox((s) => s.filter((r) => r.id !== id)),
+    // ---- channel-specific selectors (spec §4) ----
+    getRequestState: (userId, channel) => {
+      const conn = connections.find((c) => c.who === userId && c.channel === channel);
+      if (conn && (conn.expired || conn.daysLeft <= 0)) return 'expired';
+      if (conn) return 'unlocked';
+      if (inbox.find((r) => r.from === userId && r.channel === channel)) return 'incoming';
+      const s = sent.find((x) => x.to === userId && x.channel === channel);
+      if (s) return s.status; // pending | accepted | declined | cancelled
+      return 'none';
+    },
+    getConnection: (userId, channel) => connections.find((c) => c.who === userId && c.channel === channel) || null,
+    canRequestChannel: (userId, channel) => {
+      const me = window.DB.ME, p = window.DB.byId(userId);
+      if (!me.channels[channel].verified || !p || !p.channels[channel].verified) return false;
+      const st = sent.find((x) => x.to === userId && x.channel === channel);
+      const conn = connections.find((c) => c.who === userId && c.channel === channel);
+      if (conn && !conn.expired && conn.daysLeft > 0) return false;
+      if (st && (st.status === 'pending' || st.status === 'declined')) return false;
+      return true;
+    },
+    canAcceptIncomingRequest: (requestId) => {
+      const req = inbox.find((r) => r.id === requestId);
+      return !!req && window.DB.ME.channels[req.channel].verified;
+    },
   };
 
   // ---- apply tweaks to :root ----
@@ -108,10 +131,7 @@ function App() {
       case 'about': return <About />;
       case 'contact': return <Contact />;
       case 'legal': return <LegalIndex />;
-      case 'privacy': return <LegalDoc docKey="privacy" />;
-      case 'terms': return <LegalDoc docKey="terms" />;
-      case 'gdpr': return <LegalDoc docKey="gdpr" />;
-      case 'kvkk': return <LegalDoc docKey="kvkk" />;
+      case 'privacy': case 'terms': case 'gdpr': case 'kvkk': case 'cookies': case 'safetypolicy': case 'moderation': case 'contactlegal': return <LegalDoc docKey={route.name} />;
       case 'signin': return <SignIn />;
       case 'signup-legal': return <SignupLegalGate />;
       case 'onb': return <Onboarding />;

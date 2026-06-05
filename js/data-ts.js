@@ -23,9 +23,13 @@
   ];
 
   const IG_QUEUE = [
-    { id: 'IG-771', userRef: 'User #1180', handle: '••••••23', signal: 'New handle', risk: 'low', age: '8m' },
-    { id: 'IG-770', userRef: 'User #4419', handle: '••••er', signal: 'Reused across accounts', risk: 'high', age: '22m' },
-    { id: 'IG-768', userRef: 'User #7732', handle: '••••07', signal: 'Mismatch name', risk: 'med', age: '55m' },
+    { id: 'IG-771', userRef: 'User #1180', handle: '@mira.designs', signal: 'New handle', risk: 'low', age: '8m' },
+    { id: 'IG-770', userRef: 'User #4419', handle: '@arda.records', signal: 'Reused across accounts', risk: 'high', age: '22m' },
+    { id: 'IG-768', userRef: 'User #7732', handle: '@sena.shoots', signal: 'Mismatch name', risk: 'med', age: '55m' },
+  ];
+  const TG_QUEUE = [
+    { id: 'TG-512', userRef: 'User #2204', handle: '@noor_t', account: 'tg-id 88142003', signal: 'New account binding', risk: 'low', age: '6m' },
+    { id: 'TG-510', userRef: 'User #6651', handle: '@can_play', account: 'tg-id 77390115', signal: 'Username changed since binding', risk: 'med', age: '40m' },
   ];
   const PHOTO_QUEUE = [
     { id: 'PH-2231', userRef: 'User #1180', flag: 'Auto-pass', risk: 'low', age: '3m' },
@@ -70,14 +74,22 @@
   ];
 
   const ROLE_PERMS = [
-    ['Review moderation cases', [false, true, true]],
-    ['Apply decisions (hold/suspend)', [false, true, true]],
-    ['Reveal sensitive evidence (logged)', [false, true, true]],
+    ['Review assigned cases', [true, true, true]],
+    ['Reveal evidence with reason (logged)', [true, true, true]],
+    ['Apply low-risk decision (warning)', [true, true, true]],
+    ['Recommend suspension / hold', [true, true, true]],
+    ['Apply visibility hold', [true, true, false]],
+    ['Apply temporary suspension', [true, true, false]],
+    ['Review appeals', [true, true, false]],
+    ['Manage verification queues', [true, true, false]],
     ['Manage ad compliance', [true, true, false]],
     ['View revenue & visitors', [true, true, false]],
-    ['Manage moderators & roles', [true, false, false]],
     ['Export audit logs', [true, true, false]],
-    ['Legal & crawler settings', [true, false, false]],
+    ['Apply permanent ban', [true, false, false]],
+    ['Export evidence', [true, false, false]],
+    ['Manage moderators & roles', [true, false, false]],
+    ['Publish legal documents', [true, false, false]],
+    ['Use break-glass access', [true, false, false]],
   ]; // columns: Owner, Admin, Moderator
 
   const POLICY_TEMPLATES = [
@@ -134,5 +146,5 @@
     countries: [['Türkiye', 58], ['Germany', 14], ['Netherlands', 8], ['UK', 6], ['Other', 14]],
   };
 
-  window.TS = { CASES, APPEALS, IG_QUEUE, PHOTO_QUEUE, REVERIFY_QUEUE, AUDIT, RISK, AD_PLACEMENTS, MODERATORS, ROLE_PERMS, POLICY_TEMPLATES, METRICS, OWNER_APPROVALS, BREAKGLASS };
+  window.TS = { CASES, APPEALS, IG_QUEUE, TG_QUEUE, PHOTO_QUEUE, REVERIFY_QUEUE, AUDIT, RISK, AD_PLACEMENTS, MODERATORS, ROLE_PERMS, POLICY_TEMPLATES, METRICS, OWNER_APPROVALS, BREAKGLASS };
 })();

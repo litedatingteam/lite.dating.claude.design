@@ -61,7 +61,6 @@ function PublicFooter() {
         <div className="stack" style={{ gap: 12, maxWidth: 280 }}>
           <Logo size={20} />
           <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.55 }}>Skip the swiping. Skip the chat. Just trade handles. A free, consent-first way to meet people.</p>
-          <p className="faint" style={{ fontSize: 12 }}>Operated by Halit Turan ARICAN as an individual operator based in Türkiye.</p>
         </div>
         <FootCol title="Product" links={[['how', 'How it works'], ['safety', 'Safety'], ['rules', 'Community rules'], ['free', 'It\u2019s free'], ['signin', 'Join free']]} />
         <FootCol title="Company" links={[['about', 'About'], ['contact', 'Contact'], [null, 'support@lite.dating']]} />

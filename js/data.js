@@ -132,6 +132,10 @@
   };
 
   const byId = (id) => PROFILES.find((p) => p.id === id);
+  const handleFor = (id, channel) => {
+    const p = byId(id); const base = (p ? p.name : id).toLowerCase().replace(/[^a-z]/g, '');
+    return channel === 'instagram' ? `@${base}.ig` : `@${base}_tg`;
+  };
 
   // default “interested in” by gender, then mutual matching uses both sides
   const defaultSeeking = (g) => g === 'Man' ? ['Woman', 'Non-binary'] : g === 'Woman' ? ['Man', 'Non-binary'] : ['Woman', 'Man', 'Non-binary'];
@@ -156,6 +160,7 @@
     { id: 'r1', from: 'arda',  channel: 'instagram', note: 'Your record bar pick last week was perfect. Would love to talk music.', when: '2h', },
     { id: 'r2', from: 'sena',  channel: 'instagram', note: '', when: '1d' },
     { id: 'r3', from: 'noor',  channel: 'telegram',  note: 'Fellow train enthusiast. Trade handles?', when: '3d' },
+    { id: 'r4', from: 'can',   channel: 'telegram',  note: 'Tea and chess?', when: '4d' },
   ];
 
   // sent requests
@@ -169,6 +174,7 @@
   const CONNECTIONS = [
     { id: 'c1', who: 'lena', channel: 'instagram', handle: '@lena.makes', daysLeft: 11 },
     { id: 'c2', who: 'emir', channel: 'telegram',  handle: '@emir_t',     daysLeft: 3  },
+    { id: 'c4', who: 'emir', channel: 'instagram', handle: '@emir.builds', daysLeft: 9 },
     { id: 'c3', who: 'yuki', channel: 'instagram', handle: '@yuki.sound', daysLeft: 0, expired: true },
   ];
 
@@ -179,5 +185,5 @@
     { id: 'n4', kind: 'tip', icon: 'sparkle', title: 'Tip', body: 'Profiles with 4+ photos get more requests.', when: '1w', read: true },
   ];
 
-  window.DB = { CATEGORIES, INTERESTS, PROFILES, ME, byId, tag, INBOX, SENT, CONNECTIONS, CITIES, mutualGender, NOTIFS };
+  window.DB = { CATEGORIES, INTERESTS, PROFILES, ME, byId, tag, handleFor, INBOX, SENT, CONNECTIONS, CITIES, mutualGender, NOTIFS };
 })();

@@ -33,6 +33,39 @@ function AdminModeration({ onOpen }) {
   );
 }
 
+function AdminDecisionConsole({ c, onBack }) {
+  const { toast } = useNav();
+  const TEMPLATES = window.TS.POLICY_TEMPLATES.map((t) => `${t.code} · ${t.title}`);
+  const ACTIONS = ['No action', 'Warning', 'Visibility hold', 'Temporary suspension', 'Re-verification required', 'Escalate permanent ban to Owner', 'Escalate evidence export to Owner'];
+  const [tpl, setTpl] = useState(TEMPLATES[0]);
+  const [action, setAction] = useState('Warning');
+  const [sev, setSev] = useState('Medium');
+  const [internal, setInternal] = useState('');
+  const [notice, setNotice] = useState('');
+  const isEscalate = action.startsWith('Escalate');
+  const canApply = action && internal.trim() && (isEscalate || notice.trim());
+  return (
+    <div className="card pad stack" style={{ gap: 12 }}>
+      <span className="eyebrow">Decision console</span>
+      <Field label="Policy template"><Dropdown value={tpl} onChange={setTpl} options={TEMPLATES} /></Field>
+      <Field label="Action"><Dropdown value={action} onChange={setAction} options={ACTIONS} /></Field>
+      <Field label="Severity"><div className="seg" style={{ alignSelf: 'flex-start' }}>{['Low', 'Medium', 'High'].map((s) => <button key={s} className={sev === s ? 'on' : ''} onClick={() => setSev(s)}>{s}</button>)}</div></Field>
+      <Field label="Internal note (required)" hint="Visible to staff only · written to audit log"><textarea className="textarea" style={{ minHeight: 64 }} value={internal} onChange={(e) => setInternal(e.target.value)} placeholder="Why this decision…" /></Field>
+      {!isEscalate && <Field label="User-facing reasoned notice (required)" hint="The person sees this exact text with their decision"><textarea className="textarea" style={{ minHeight: 64 }} value={notice} onChange={(e) => setNotice(e.target.value)} placeholder="Plain-language reason for the user…" /></Field>}
+      {isEscalate && <div className="card pad" style={{ background: 'var(--amber-w)', border: 'none', display: 'flex', gap: 9 }}><Icon name="shield" size={15} style={{ color: 'color-mix(in oklch, var(--amber), black 18%)', flex: 'none' }} /><span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>This action is Owner-only. Escalating sends the case to the Owner approval queue with your note attached.</span></div>}
+      {/* audit preview */}
+      <div className="card pad stack" style={{ gap: 6, background: 'var(--surface-2)', border: 'none' }}>
+        <span className="eyebrow">Audit log preview</span>
+        <span className="mono" style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>actor=admin_derya · case={c.id} · action={action} · sev={sev} · policy={tpl.split(' · ')[0]} · ts=now</span>
+      </div>
+      <div className="row" style={{ gap: 10 }}>
+        <button className="btn ghost" onClick={onBack}>Cancel</button>
+        <button className="btn ink" style={{ flex: 1 }} disabled={!canApply} onClick={() => { toast(isEscalate ? 'Escalated to Owner · logged' : `Decision applied to ${c.id} · logged`, isEscalate ? 'warn' : 'ok'); onBack(); }}>{isEscalate ? 'Escalate to Owner' : 'Apply decision'}</button>
+      </div>
+    </div>
+  );
+}
+
 function AdminReportDetail({ c, onBack }) {
   const { toast } = useNav();
   return (
@@ -49,12 +82,7 @@ function AdminReportDetail({ c, onBack }) {
           <div className="stack" style={{ gap: 10 }}><span className="eyebrow">Evidence · blurred by default</span><div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>{Array.from({ length: c.evidence }).map((_, i) => <EvidenceItem key={i} index={i} kind="evidence" />)}</div></div>
         </div>
         <div className="stack" style={{ gap: 12 }}>
-          <span className="eyebrow">Admin actions</span>
-          <div className="card pad stack" style={{ gap: 10 }}>
-            <button className="btn ghost block" onClick={() => toast('Reassigned to moderator', 'ok')}>Reassign to moderator</button>
-            <button className="btn ghost block" onClick={() => toast('Escalated for Owner review', 'warn')}>Escalate to Owner</button>
-            <button className="btn ink block" onClick={() => { toast('Decision applied · logged', 'ok'); onBack(); }}>Apply decision…</button>
-          </div>
+          <AdminDecisionConsole c={c} onBack={onBack} />
           <div className="card pad" style={{ background: 'var(--surface-2)', border: 'none' }}><p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>Admins act on cases, not on a browsable list of users. Every action here is written to the audit log.</p></div>
         </div>
       </div>
@@ -118,6 +146,11 @@ function AdminPhoto() {
     cols={['Ref', 'User', 'Flag', 'Risk', 'Age', 'Action']}
     render={(q) => ({ cells: [<span className="mono" style={{ fontWeight: 700, color: 'var(--ink)' }}>{q.id}</span>, <span className="mono muted">{q.userRef}</span>, q.flag, <SevBadge sev={q.risk} />, <span className="faint">{q.age}</span>, <QueueActions aLabel="Pass" rLabel="Fail" />] })} />;
 }
+function AdminTelegram() {
+  return <VerifyQueue title="Telegram verification queue" desc="Telegram identity is bound to the account, not just the @username. Usernames are masked by default — reveal requires a reason and is watermarked and logged." data={window.TS.TG_QUEUE}
+    cols={['Ref', 'User', 'Username', 'Account', 'Signal', 'Risk', 'Age', 'Action']}
+    render={(q) => ({ cells: [<span className="mono" style={{ fontWeight: 700, color: 'var(--ink)' }}>{q.id}</span>, <span className="mono muted">{q.userRef}</span>, <MaskedHandle handle={q.handle} />, <span className="mono faint" style={{ fontSize: 11 }}>{q.account}</span>, q.signal, <SevBadge sev={q.risk} />, <span className="faint">{q.age}</span>, <QueueActions />] })} />;
+}
 function AdminReverify() {
   return <VerifyQueue title="Re-verification queue" desc="Triggered by new devices, sensitive changes, or post-decision checks." data={window.TS.REVERIFY_QUEUE}
     cols={['Ref', 'User', 'Reason', 'Risk', 'Age', 'Action']}
@@ -147,4 +180,4 @@ function AdminAdCompliance() {
   );
 }
 
-Object.assign(window, { AdminModeration, AdminReportDetail, AdminAppeals, AdminIG, AdminPhoto, AdminReverify, AdminAdCompliance, QueueHead, QueueActions });
+Object.assign(window, { AdminModeration, AdminReportDetail, AdminAppeals, AdminIG, AdminTelegram, AdminPhoto, AdminReverify, AdminAdCompliance, QueueHead, QueueActions });

@@ -16,6 +16,8 @@ function InboxCard({ req }) {
   const { store, toast, go } = useNav();
   const p = window.DB.byId(req.from);
   const tint = window.DB.PROFILES.findIndex((x) => x.id === req.from);
+  const CH = { instagram: 'Instagram', telegram: 'Telegram' };
+  const meV = window.DB.ME.channels[req.channel].verified;
   return (
     <div className="card" style={{ padding: 16, display: 'grid', gridTemplateColumns: '64px 1fr', gap: 16 }}>
       <button onClick={() => go('profile', p.id)} style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}><Photo label="" tint={tint} ratio="1 / 1" radius="var(--r-md)" style={{ width: 64, height: 64 }} /></button>
@@ -28,10 +30,13 @@ function InboxCard({ req }) {
           <ChannelBadge type={req.channel} />
         </div>
         {req.note && <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, background: 'var(--surface-2)', padding: '10px 12px', borderRadius: 'var(--r-sm)' }}>“{req.note}”</p>}
+        {!meV && <div className="row" style={{ gap: 8, background: 'var(--amber-w)', padding: '8px 12px', borderRadius: 'var(--r-sm)' }}><Icon name="info" size={14} style={{ color: 'color-mix(in oklch, var(--amber), black 18%)', flex: 'none' }} /><span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Verify your {CH[req.channel]} to share it and accept this request.</span></div>}
         <div className="row wrap" style={{ gap: 8 }}>
-          <button className="btn primary sm" onClick={() => { store.acceptRequest(req.id); toast(`You shared your handle with ${p.name}`, 'ok'); }}><Icon name="check" size={15} />Accept & share handle</button>
+          {meV
+            ? <button className="btn primary sm" onClick={() => { store.acceptRequest(req.id); toast(`You shared your ${CH[req.channel]} with ${p.name}`, 'ok'); }}><Icon name="check" size={15} />Accept & share {CH[req.channel]}</button>
+            : <button className="btn ink sm" onClick={() => go('settings')}><Icon name={req.channel} size={15} />Verify {CH[req.channel]} to accept</button>}
           <button className="btn ghost sm" onClick={() => { store.declineRequest(req.id); toast('Request passed', 'warn'); }}>Pass</button>
-          <button className="btn ghost sm icon" title="Report or block" onClick={() => { store.setReturnTo('inbox'); go('report'); }}><Icon name="flag" size={15} /></button>
+          <button className="btn ghost sm icon" title="Report" onClick={() => { store.setReturnTo({ name: 'inbox' }); go('report'); }}><Icon name="flag" size={15} /></button>
         </div>
       </div>
     </div>
@@ -138,12 +143,20 @@ function Connections() {
 /* ---------------- favorites ---------------- */
 function Favorites() {
   const { store, go } = useNav();
-  const favs = window.DB.PROFILES.filter((p) => store.favorites.has(p.id));
+  const favs = window.DB.PROFILES.filter((p) => store.favorites.has(p.id) && !store.isBlocked(p.id) && !p.blockedMe && !p.suspended && !p.deleted);
+  const items = [];
+  favs.forEach((p, i) => {
+    items.push(<ProfileCard key={p.id} p={p} tint={window.DB.PROFILES.findIndex((x) => x.id === p.id)} />);
+    if (i >= 6 && (i - 6) % 9 === 0) items.push(<NativeAd key={'ad' + i} />);
+  });
   return (
     <AppFrame title="Favorites">
       {favs.length === 0
         ? <EmptyState icon="heart" title="No favorites yet" body="Tap the heart on any profile to save it here. Favoriting is private — they’re never notified." action="Browse profiles" onAction={() => go('discover')} />
-        : <div className="disc-grid">{favs.map((p, i) => [<ProfileCard key={p.id} p={p} tint={window.DB.PROFILES.findIndex((x) => x.id === p.id)} />, ...(i === 2 ? [<NativeAd key="ad" />] : [])])}</div>}
+        : <>
+            <div className="disc-grid">{items}</div>
+            <p className="faint tac" style={{ fontSize: 12.5, marginTop: 24, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' }}>Some saved profiles may disappear if they delete their account, block you, or are removed for safety reasons.</p>
+          </>}
     </AppFrame>
   );
 }
