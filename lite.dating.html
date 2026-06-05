@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lite.dating — concept</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <style>
+    /* responsive hero/grid collapses */
+    @media (max-width: 880px) {
+      .hero-grid { grid-template-columns: 1fr !important; }
+      .hero-cards { display: none !important; }
+      .band-grid, .how-grid, .profile-grid { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 720px) {
+      .how-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- bootstrap: expose React hooks as globals so each Babel script shares them -->
+  <script>
+    var useState = React.useState, useEffect = React.useEffect, useRef = React.useRef,
+        useContext = React.useContext, createContext = React.createContext,
+        useMemo = React.useMemo, useCallback = React.useCallback, useLayoutEffect = React.useLayoutEffect,
+        Fragment = React.Fragment;
+  </script>
+
+  <!-- mock data (plain) -->
+  <script src="js/data.js"></script>
+  <script src="js/data-ts.js"></script>
+
+  <!-- components (babel, in dependency order) -->
+  <script type="text/babel" src="jsx/primitives.jsx"></script>
+  <script type="text/babel" src="jsx/shell.jsx"></script>
+  <script type="text/babel" src="jsx/public.jsx"></script>
+  <script type="text/babel" src="jsx/public-pages.jsx"></script>
+  <script type="text/babel" src="jsx/auth.jsx"></script>
+  <script type="text/babel" src="jsx/onboarding.jsx"></script>
+  <script type="text/babel" src="jsx/discover.jsx"></script>
+  <script type="text/babel" src="jsx/profile-detail.jsx"></script>
+  <script type="text/babel" src="jsx/connections.jsx"></script>
+  <script type="text/babel" src="jsx/profile-me.jsx"></script>
+  <script type="text/babel" src="jsx/safety-flows.jsx"></script>
+  <script type="text/babel" src="jsx/ops-shell.jsx"></script>
+  <script type="text/babel" src="jsx/mod.jsx"></script>
+  <script type="text/babel" src="jsx/admin-queues.jsx"></script>
+  <script type="text/babel" src="jsx/admin.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="jsx/app-main.jsx"></script>
+</body>
+</html>

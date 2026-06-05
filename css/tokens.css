@@ -1,0 +1,166 @@
+/* ===========================================================
+   lite.dating — design tokens
+   Warm, consent-first, pastel-vivid. Host Grotesk.
+   =========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  /* ---- type ---- */
+  --font-ui: 'Host Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ---- ink + neutrals (warm plum-tinted) ---- */
+  --ink:        oklch(0.22 0.035 318);   /* deep plum near-black — headings */
+  --ink-soft:   oklch(0.32 0.035 315);   /* body on light */
+  --muted:      oklch(0.53 0.038 312);   /* gray-purple — secondary text */
+  --faint:      oklch(0.66 0.028 310);   /* tertiary / captions */
+  --line:       oklch(0.91 0.012 320);   /* hairline borders */
+  --line-soft:  oklch(0.94 0.010 322);
+
+  /* ---- surfaces ---- */
+  --bg:         oklch(0.985 0.010 330);  /* blush off-white page */
+  --bg-2:       oklch(0.975 0.014 320);  /* alt section */
+  --surface:    oklch(0.995 0.004 330);  /* card white */
+  --surface-2:  oklch(0.978 0.012 325);  /* inset */
+  --glass:      oklch(0.99 0.01 330 / 0.72);
+
+  /* ---- brand accents (vary hue, near-equal C/L) ---- */
+  --pink:       oklch(0.68 0.18 0);      /* warm vivid pink */
+  --pink-2:     oklch(0.74 0.15 5);
+  --violet:     oklch(0.60 0.18 300);    /* purple */
+  --violet-2:   oklch(0.66 0.16 295);
+  --cyan:       oklch(0.74 0.12 220);    /* trust / freshness */
+  --cyan-2:     oklch(0.80 0.10 215);
+
+  /* tint washes for soft backgrounds */
+  --wash-pink:   oklch(0.95 0.035 0);
+  --wash-violet: oklch(0.95 0.035 300);
+  --wash-cyan:   oklch(0.95 0.030 220);
+
+  /* ---- functional ---- */
+  --green:   oklch(0.66 0.15 155);
+  --green-w: oklch(0.95 0.04 155);
+  --amber:   oklch(0.76 0.14 78);
+  --amber-w: oklch(0.95 0.05 80);
+  --red:     oklch(0.60 0.20 22);
+  --red-w:   oklch(0.95 0.04 22);
+
+  /* ---- gradient (vividness driven by --grad-mix, set by Tweaks 0..1) ---- */
+  --grad-mix: 0.6;
+  --grad-a: color-mix(in oklch, var(--pink),   white calc((1 - var(--grad-mix)) * 55%));
+  --grad-b: color-mix(in oklch, var(--violet), white calc((1 - var(--grad-mix)) * 55%));
+  --grad-c: color-mix(in oklch, var(--cyan),   white calc((1 - var(--grad-mix)) * 55%));
+  --grad:   linear-gradient(110deg, var(--grad-a) 0%, var(--grad-b) 52%, var(--grad-c) 100%);
+  --grad-soft: linear-gradient(135deg, var(--wash-pink), var(--wash-violet) 55%, var(--wash-cyan));
+
+  /* ---- radius ---- */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 30px;
+  --r-pill: 999px;
+
+  /* ---- shadow (soft, plum-tinted) ---- */
+  --sh-xs: 0 1px 2px oklch(0.4 0.05 320 / 0.06);
+  --sh-sm: 0 2px 8px oklch(0.4 0.05 320 / 0.07), 0 1px 2px oklch(0.4 0.05 320 / 0.05);
+  --sh-md: 0 10px 30px oklch(0.4 0.06 320 / 0.10), 0 2px 6px oklch(0.4 0.05 320 / 0.06);
+  --sh-lg: 0 24px 60px oklch(0.4 0.07 320 / 0.16), 0 4px 12px oklch(0.4 0.05 320 / 0.08);
+  --sh-glow: 0 14px 40px oklch(0.68 0.18 330 / 0.28);
+
+  /* ---- motion ---- */
+  --motion: 1;               /* Tweaks multiplier */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---- layout ---- */
+  --maxw: 1180px;
+  --sidebar: 248px;
+}
+
+/* operational theme for admin / moderator — calmer, desaturated, cooler */
+[data-theme="ops"] {
+  --bg:        oklch(0.965 0.006 285);
+  --bg-2:      oklch(0.955 0.007 285);
+  --surface:   oklch(0.995 0.003 285);
+  --surface-2: oklch(0.975 0.006 285);
+  --ink:       oklch(0.26 0.02 280);
+  --ink-soft:  oklch(0.34 0.02 280);
+  --muted:     oklch(0.52 0.018 280);
+  --faint:     oklch(0.64 0.015 280);
+  --line:      oklch(0.90 0.006 285);
+  --line-soft: oklch(0.93 0.005 285);
+  --grad-mix:  0.28;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-ui);
+  color: var(--ink-soft);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+}
+
+::selection { background: color-mix(in oklch, var(--violet), white 60%); color: var(--ink); }
+
+h1, h2, h3, h4 { color: var(--ink); font-weight: 600; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+p { margin: 0; text-wrap: pretty; }
+button { font-family: inherit; }
+a { color: inherit; }
+
+/* utility text */
+.mono { font-family: var(--font-mono); }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.gradient-text {
+  background: linear-gradient(100deg, var(--pink), var(--violet) 55%, var(--cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* focus ring — accessible, visible */
+:where(button, a, input, textarea, [tabindex], [role="button"]):focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* striped photo placeholder */
+.ph-stripe {
+  background-color: var(--surface-2);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    oklch(0.88 0.03 320 / 0.5) 0 1px,
+    transparent 1px 11px
+  );
+  position: relative;
+  overflow: hidden;
+}
+.ph-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  text-transform: lowercase;
+}
+
+/* thin scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
