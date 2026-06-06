@@ -82,28 +82,11 @@ function Icon({ name, size = 18, fill = false, stroke = 2, style, className }) {
 
 /* ---------------- logo: wordmark + coffee-cup handle-trade glyph ---------------- */
 function Logo({ size = 22, mono = false, onClick }) {
-  const h = size * 1.34;
-  const fill = mono ? 'var(--ink)' : 'url(#lgGrad)';
+  // image lockup (cup + wordmark), ratio ~3.81:1; height scaled from `size`
+  const h = Math.round(size * 1.5);
   return (
-    <span onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', gap: size * 0.24, cursor: onClick ? 'pointer' : 'default', userSelect: 'none' }}>
-      <span style={{ display: 'inline-flex', width: h, height: h, position: 'relative', flex: 'none' }} aria-hidden="true">
-        <svg width={h} height={h} viewBox="0 0 32 32" fill="none">
-          <defs>
-            <linearGradient id="lgGrad" x1="3" y1="8" x2="29" y2="24" gradientUnits="userSpaceOnUse">
-              <stop stopColor="var(--pink)"/><stop offset="0.55" stopColor="var(--violet)"/><stop offset="1" stopColor="var(--cyan)"/>
-            </linearGradient>
-          </defs>
-          {/* coffee cup */}
-          <path d="M20.6 13.4a4 4 0 0 1 0 7.2" fill="none" stroke={fill} strokeWidth="2.3" strokeLinecap="round"/>
-          <path d="M7 10H21V16A7 7 0 0 1 14 23A7 7 0 0 1 7 16Z" fill={fill}/>
-          {/* two arrows trading */}
-          <path d="M10.4 14.6H17M15.2 12.8L17.4 14.6L15.2 16.4" stroke="white" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" opacity="0.95"/>
-          <path d="M17.6 18.6H11M12.8 16.8L10.6 18.6L12.8 20.4" stroke="white" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
-        </svg>
-      </span>
-      <span style={{ fontWeight: 600, fontSize: size, letterSpacing: '-0.03em', color: 'var(--ink)' }}>
-        lite<span style={{ color: 'var(--muted)', fontWeight: 500 }}>.dating</span>
-      </span>
+    <span onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', cursor: onClick ? 'pointer' : 'default', userSelect: 'none' }}>
+      <img src="assets/logo.png" alt="lite.dating" height={h} style={{ height: h, width: 'auto', display: 'block', filter: mono ? 'grayscale(1) brightness(0.5)' : 'none' }} />
     </span>
   );
 }

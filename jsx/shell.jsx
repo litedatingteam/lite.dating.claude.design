@@ -47,8 +47,10 @@ function FootCol({ title, links }) {
   return (
     <div className="stack" style={{ gap: 10 }}>
       <div className="eyebrow" style={{ marginBottom: 4 }}>{title}</div>
-      {links.map(([k, label]) => (
-        <a key={label} onClick={() => k && go(k)} style={{ fontSize: 14, color: 'var(--muted)', cursor: k ? 'pointer' : 'default', textDecoration: 'none' }}>{label}</a>
+      {links.map(([k, label, href]) => (
+        href
+          ? <a key={label} href={href} style={{ fontSize: 14, color: 'var(--muted)', cursor: 'pointer', textDecoration: 'none' }}>{label}</a>
+          : <a key={label} onClick={() => k && go(k)} style={{ fontSize: 14, color: 'var(--muted)', cursor: k ? 'pointer' : 'default', textDecoration: 'none' }}>{label}</a>
       ))}
     </div>
   );
@@ -73,7 +75,7 @@ function PublicFooter() {
           <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.55 }}>Skip the swiping. Skip the chat. Just trade handles. A free, consent-first way to meet people.</p>
         </div>
         <FootCol title="Product" links={[['how', 'How it works'], ['safety', 'Safety'], ['rules', 'Community rules'], ['free', 'It\u2019s free'], ['signin', 'Join free']]} />
-        <FootCol title="Company" links={[['about', 'About'], ['contact', 'Contact'], [null, 'support@lite.dating']]} />
+        <FootCol title="Company" links={[['about', 'About'], ['contact', 'Contact'], [null, 'support@lite.dating', 'mailto:support@lite.dating']]} />
         <FootCol title="Legal" links={[['privacy', 'Privacy'], ['terms', 'Terms'], ['gdpr', 'GDPR'], ['kvkk', 'KVKK']]} />
       </div>
     </footer>

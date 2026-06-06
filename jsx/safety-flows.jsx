@@ -487,7 +487,7 @@ function ActiveDecisions() {
           <Icon name="lock" size={17} style={{ color: 'var(--green)', flex: 'none' }} />
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>Your selfie stays private — never shown to other users, never used for ads. No government ID is required.</p>
         </div>
-        <button className="btn primary" style={{ alignSelf: 'start' }} onClick={() => go('onb')}><Icon name="camera" size={16} />Start re-verification</button>
+        <button className="btn primary" style={{ alignSelf: 'start' }} onClick={() => { store.setReturnTo({ name: 'decisions' }); go('reverify-selfie'); }}><Icon name="camera" size={16} />Start re-verification</button>
       </div>
     ),
     appealing: (
@@ -520,4 +520,47 @@ function ActiveDecisions() {
   );
 }
 
-Object.assign(window, { ReportFlow, AppealFlow, LegalGate, SignupLegalGate, SafetyCenter, ActiveDecisions, FlowShell, RadioCard, Row });
+/* dedicated re-verification selfie flow (focused, not full onboarding) */
+function ReVerifyFlow() {
+  const { go, store, toast } = useNav();
+  const ret = (store.returnTo && store.returnTo.name) || 'decisions';
+  const [submitted, setSubmitted] = useState(false);
+  if (submitted) {
+    return (
+      <FlowShell title="Re-verification" onBack={() => go(ret)}>
+        <div className="tac stack" style={{ alignItems: 'center', gap: 16, padding: '40px 0' }}>
+          <div style={{ width: 72, height: 72, borderRadius: 22, background: 'var(--green-w)', display: 'grid', placeItems: 'center', color: 'var(--green)' }}><Icon name="check" size={32} /></div>
+          <h1 style={{ fontSize: 24 }}>Selfie submitted</h1>
+          <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.55, maxWidth: 380 }}>Your re-verification is in review. Your profile stays visible while we confirm — usually within a few minutes.</p>
+          <button className="btn primary" style={{ marginTop: 8 }} onClick={() => go(ret)}>Done</button>
+        </div>
+      </FlowShell>
+    );
+  }
+  return (
+    <FlowShell title="Re-verification" onBack={() => go(ret)}>
+      <div className="stack" style={{ gap: 16 }}>
+        <h1 style={{ fontSize: 24 }}>Confirm it’s you</h1>
+        <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.55 }}>A quick private selfie keeps your account secure. This is just the photo check — nothing else about your profile changes.</p>
+        <div className="row" style={{ gap: 18, alignItems: 'center' }}>
+          <div style={{ width: 104, flex: 'none' }}>
+            <div className="ph-stripe" style={{ aspectRatio: '3 / 4', borderRadius: 'var(--r-md)', border: '2px dashed color-mix(in oklch, var(--violet), white 40%)', display: 'grid', placeItems: 'center', backgroundColor: 'oklch(0.95 0.03 300)' }}>
+              <span className="stack" style={{ alignItems: 'center', gap: 5, opacity: 0.85 }}><Icon name="user" size={22} style={{ color: 'var(--muted)' }} /><span className="ph-label">selfie</span></span>
+            </div>
+          </div>
+          <div className="card pad" style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'var(--grad-soft)', border: 'none', flex: 1 }}>
+            <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--surface)', display: 'grid', placeItems: 'center', color: 'var(--violet)', flex: 'none' }}><Icon name="user" size={20} /></span>
+            <div className="stack" style={{ gap: 2 }}><span className="eyebrow">Your pose</span><strong style={{ color: 'var(--ink)', fontSize: 14, lineHeight: 1.35 }}>Open palm of your left or right hand under your chin — face uncovered.</strong></div>
+          </div>
+        </div>
+        <div className="card pad" style={{ display: 'flex', gap: 10, background: 'var(--green-w)', border: 'none' }}>
+          <Icon name="lock" size={17} style={{ color: 'var(--green)', flex: 'none' }} />
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>Private — never shown to other users or used for ads. Remove glasses/hats. No government ID required.</p>
+        </div>
+        <button className="btn primary lg block" onClick={() => { setSubmitted(true); toast('Selfie submitted for review', 'ok'); }}><Icon name="camera" size={17} />Upload private selfie</button>
+      </div>
+    </FlowShell>
+  );
+}
+
+Object.assign(window, { ReportFlow, AppealFlow, LegalGate, SignupLegalGate, SafetyCenter, ActiveDecisions, ReVerifyFlow, FlowShell, RadioCard, Row });

@@ -182,7 +182,7 @@ function Discover() {
         </div>
       )}
       {list.length === 0
-        ? <DiscoverEmpty narrow />
+        ? <DiscoverEmpty narrow onWiden={() => { const wide = { ...DEFAULTS, dist: 3000 }; setApplied(wide); setDraft(wide); }} />
         : <div className="disc-grid">{items}</div>}
       <p className="faint tac" style={{ fontSize: 12.5, marginTop: 28 }}>You’ve reached the end of nearby profiles. Widen your distance in Filters to see more.</p>
       {filtersOpen && <FiltersModal draft={draft} setDraft={setDraft} onApply={apply} onClear={clear} onClose={() => setFiltersOpen(false)} />}
@@ -190,15 +190,16 @@ function Discover() {
   );
 }
 
-function DiscoverEmpty({ narrow, framed }) {
+function DiscoverEmpty({ narrow, framed, onWiden }) {
   const { go } = useNav();
+  const widen = onWiden || (() => go('discover'));
   const body = (
     <div className="tac stack" style={{ alignItems: 'center', gap: 16, padding: narrow ? '40px 20px' : '80px 20px', maxWidth: 420, margin: '0 auto' }}>
       <div style={{ width: 88, height: 88, borderRadius: 26, background: 'var(--grad-soft)', display: 'grid', placeItems: 'center', color: 'var(--violet)' }}><Icon name="compass" size={36} /></div>
       <h2 style={{ fontSize: 24 }}>No one new nearby — yet</h2>
       <p className="muted" style={{ fontSize: 15, lineHeight: 1.55 }}>We didn’t find profiles within your current distance. Try widening your range, or check back soon as more people join.</p>
       <div className="row wrap" style={{ gap: 10, justifyContent: 'center' }}>
-        <button className="btn primary" onClick={() => go('discover')}>Widen distance</button>
+        <button className="btn primary" onClick={widen}>Widen distance</button>
         <button className="btn ghost" onClick={() => go('me')}>Change your profile settings</button>
       </div>
     </div>

@@ -160,6 +160,7 @@ function App() {
       case 'settings': return <Settings />;
       case 'safety-center': return <SafetyCenter />;
       case 'decisions': return <ActiveDecisions />;
+      case 'reverify-selfie': return <ReVerifyFlow />;
       case 'data-export': return <DataExport />;
       case 'ad-experience': return <AdExperience />;
       case 'consent': return <ConsentSettings />;
