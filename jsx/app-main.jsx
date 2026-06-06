@@ -53,8 +53,21 @@ function App() {
     requestsUsed,
     get requestsLeft() { return Math.max(0, 13 - requestsUsed); },
     sendRequest: ({ to, channel, note }) => {
-      setSent((s) => [{ id: 's' + Date.now(), to, channel, note, status: 'pending', when: 'now' }, ...s]);
+      const me = window.DB.ME, p = window.DB.byId(to);
+      // guard: channel verification (both sides)
+      if (!me.channels[channel].verified || !p || !p.channels[channel].verified) return { ok: false, reason: 'ineligible' };
+      // guard: active unlocked connection for this channel
+      const conn = connections.find((c) => c.who === to && c.channel === channel);
+      if (conn && !conn.expired && conn.daysLeft > 0) return { ok: false, reason: 'connected' };
+      // guard: duplicate pending
+      if (sent.find((x) => x.to === to && x.channel === channel && x.status === 'pending')) return { ok: false, reason: 'duplicate' };
+      // guard: previously declined for this channel
+      if (sent.find((x) => x.to === to && x.channel === channel && x.status === 'declined')) return { ok: false, reason: 'declined' };
+      // guard: rolling-24h request limit
+      if (requestsUsed >= 13) return { ok: false, reason: 'limit' };
+      setSent((s) => [{ id: 's' + Date.now(), to, channel, note, status: 'pending', when: 'now', createdAt: Date.now(), updatedAt: Date.now() }, ...s]);
       setRequestsUsed((n) => n + 1); // only successful requests count
+      return { ok: true };
     },
     cancelRequest: (to, channel) => setSent((s) => s.filter((x) => !(x.to === to && (channel ? x.channel === channel : true) && x.status === 'pending'))),
     blocked,
@@ -171,7 +184,7 @@ function App() {
     <NavCtx.Provider value={{ route, go, store, toast, toasts }}>
       <div className="app-root">
         {isPublic
-          ? <><PublicNav />{renderScreen()}<PublicFooter /></>
+          ? <><PublicNav />{renderScreen()}<PreFooterAd /><PublicFooter /></>
           : renderScreen()}
       </div>
       <ToastHost />

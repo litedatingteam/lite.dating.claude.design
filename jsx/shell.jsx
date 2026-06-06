@@ -53,6 +53,16 @@ function FootCol({ title, links }) {
     </div>
   );
 }
+function PreFooterAd() {
+  return (
+    <div style={{ borderTop: '1px solid var(--line-soft)', background: 'var(--bg-2)' }}>
+      <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto', padding: '20px 24px' }}>
+        <div className="row" style={{ justifyContent: 'center', marginBottom: 8 }}><span className="ad-label"><Icon name="info" size={11} />Advertisement</span></div>
+        <div className="ad-frame" style={{ height: 90, display: 'grid', placeItems: 'center', borderRadius: 'var(--r-md)' }}><span className="ph-label">ad</span></div>
+      </div>
+    </div>
+  );
+}
 function PublicFooter() {
   const { go } = useNav();
   return (
@@ -158,7 +168,7 @@ function NotificationBell() {
   };
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <button className="btn icon ghost" onClick={() => setOpen((o) => !o)} aria-label="Notifications" style={{ position: 'relative' }}>
+      <button className="btn icon ghost" onClick={() => setOpen((o) => !o)} aria-label="Notifications" style={{ position: 'relative', border: 'none', background: 'transparent', boxShadow: 'none' }}>
         <Icon name="bell" size={19} />
         {store.unread > 0 && <span style={{ position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999, background: 'var(--pink)', color: 'white', fontSize: 10, fontWeight: 700, display: 'grid', placeItems: 'center', border: '2px solid var(--surface)' }}>{store.unread}</span>}
       </button>
@@ -260,4 +270,4 @@ function ProtoNavigator() {
   );
 }
 
-Object.assign(window, { NavCtx, useNav, PublicNav, PublicFooter, AppFrame, Sidebar, BottomNav, ToastHost, ProtoNavigator });
+Object.assign(window, { NavCtx, useNav, PublicNav, PublicFooter, PreFooterAd, AppFrame, Sidebar, BottomNav, ToastHost, ProtoNavigator });

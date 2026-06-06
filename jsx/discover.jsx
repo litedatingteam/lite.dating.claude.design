@@ -22,7 +22,7 @@ function ProfileCard({ p, tint }) {
       onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
       <div style={{ position: 'relative' }}>
         <Photo label={`${p.name.toLowerCase()} · photo`} tint={tint} ratio="4 / 5" radius="0">
-          <div style={{ position: 'absolute', top: 10, left: 10 }}><VerifiedBadge small /></div>
+          <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6 }}><span className="badge" style={{ background: 'var(--surface)', fontSize: 11, padding: '5px 8px' }} title={p.gender}>{p.gender === 'Woman' ? '♀' : p.gender === 'Man' ? '♂' : '⚧'}</span><VerifiedBadge small /></div>
           <div style={{ position: 'absolute', top: 10, right: 10 }}><FavButton id={p.id} size="sm" /></div>
           {p.online && <span className="badge" style={{ position: 'absolute', bottom: 10, left: 10, background: 'var(--surface)', fontSize: 11 }}><span className="dot" style={{ background: 'var(--green)' }} />Active now</span>}
           <div style={{ position: 'absolute', inset: 'auto 0 0 0', height: 70, background: 'linear-gradient(transparent, oklch(0.2 0.04 320 / 0.18))' }} />
@@ -50,16 +50,13 @@ function ProfileCard({ p, tint }) {
 
 function NativeAd() {
   return (
-    <div className="card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', border: '1px dashed var(--line)' }}>
-      <div className="row" style={{ justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid var(--line-soft)' }}>
+    <div className="card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div className="row" style={{ justifyContent: 'space-between', padding: '8px 14px', borderBottom: '1px solid var(--line-soft)' }}>
         <span className="ad-label"><Icon name="info" size={12} />Advertisement</span>
         <span className="faint" style={{ fontSize: 11 }}>Sponsored</span>
       </div>
       <div className="ph-stripe" style={{ aspectRatio: '4 / 3', display: 'grid', placeItems: 'center', background: 'var(--surface-2)' }}>
-        <span className="ph-label">native ad creative</span>
-      </div>
-      <div style={{ padding: 14 }}>
-        <p className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>Sponsored content appears in its own labeled card — never styled as a profile, and never with profile actions.</p>
+        <span className="ph-label">ad</span>
       </div>
     </div>
   );
@@ -82,18 +79,16 @@ function FiltersModal({ draft, setDraft, onApply, onClear, onClose }) {
           <span className="eyebrow">Filters</span>
           <button className="btn icon sm ghost" onClick={onClose}><Icon name="x" size={16} /></button>
         </div>
-        <div style={{ padding: '14px 22px 22px' }} className="stack">
+        <div className="stack" style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 22px 22px' }}>
           <Field label="Looking for" hint="Set in your profile — changing who you’re shown to keeps matching mutual.">
             <GenderPicker multi disabled value={me.seeking} onChange={() => {}} />
           </Field>
-          <div className="hr" />
           <Field label="Verified channels" error={noChannel ? 'Choose at least one verified channel.' : null} hint={noChannel ? null : draft.ig && draft.tg ? 'Showing people who verified both.' : draft.ig ? 'Showing people with Instagram verified.' : 'Showing people with Telegram verified.'}>
             <div className="row" style={{ gap: 10 }}>
               <Check on={draft.ig} label="Instagram verified" icon="instagram" onToggle={() => setDraft({ ...draft, ig: !draft.ig })} />
               <Check on={draft.tg} label="Telegram verified" icon="telegram" onToggle={() => setDraft({ ...draft, tg: !draft.tg })} />
             </div>
           </Field>
-          <div className="hr" />
           <Field label="Age range" error={ageBad ? 'Minimum must be at or below maximum.' : null}>
             <div className="row" style={{ gap: 10, alignItems: 'center' }}>
               <input className="input" type="number" min="18" max="99" value={draft.ageMin} onChange={(e) => setDraft({ ...draft, ageMin: Number(e.target.value) })} style={{ width: 80 }} />
@@ -104,8 +99,12 @@ function FiltersModal({ draft, setDraft, onApply, onClear, onClose }) {
           <Field label="Location">
             <CityField value={draft.loc} onChange={(v) => setDraft({ ...draft, loc: v })} placeholder="Anywhere — set location" compact />
           </Field>
-          <Field label={`Maximum distance · ${draft.dist} km`}>
-            <input type="range" min="5" max="2500" step="5" value={draft.dist} onChange={(e) => setDraft({ ...draft, dist: Number(e.target.value) })} style={{ width: '100%', accentColor: 'var(--violet)' }} />
+          <Field label={`Maximum distance · ${draft.dist >= 3000 ? 'Global 🌍' : draft.dist + ' km'}`}>
+            <input type="range" min="25" max="3000" step="25" value={draft.dist} onChange={(e) => setDraft({ ...draft, dist: Number(e.target.value) })} style={{ width: '100%', accentColor: 'var(--violet)' }} />
+            <div className="row" style={{ justifyContent: 'space-between', marginTop: 4 }}>
+              <span className="faint" style={{ fontSize: 11 }}> </span>
+              <button type="button" className="btn ghost sm" style={{ height: 28, fontSize: 12, padding: '0 10px', borderColor: draft.dist >= 3000 ? 'var(--violet)' : 'var(--line)', color: draft.dist >= 3000 ? 'var(--violet)' : 'var(--muted)' }} onClick={() => setDraft({ ...draft, dist: draft.dist >= 3000 ? 500 : 3000 })}>🌍 Global</button>
+            </div>
           </Field>
           <div className="row" style={{ gap: 10, marginTop: 8 }}>
             <button className="btn ghost" onClick={onClear}>Clear filters</button>
@@ -141,7 +140,7 @@ function Discover() {
   const { store } = useNav();
   const [tab, setTab] = useState('nearby');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const DEFAULTS = { ig: true, tg: true, ageMin: 18, ageMax: 99, loc: '', dist: 2500 };
+  const DEFAULTS = { ig: true, tg: true, ageMin: 18, ageMax: 99, loc: '', dist: 500 };
   const [applied, setApplied] = useState(DEFAULTS);
   const [draft, setDraft] = useState(DEFAULTS);
   const me = window.DB.ME;
@@ -151,7 +150,7 @@ function Discover() {
   const newCount = matched.filter((p) => p.newToday).length;
   const list = matched.filter((p) => {
     const matchesLoc = !cityToken || p.city.toLowerCase().includes(cityToken);
-    const within = p.dist <= applied.dist;
+    const within = applied.dist >= 3000 || p.dist <= applied.dist;
     const matchesTab = tab === 'new' ? p.newToday : tab === 'active' ? p.online : true;
     const matchesAge = p.age >= applied.ageMin && p.age <= applied.ageMax;
     const matchesCh = (!applied.ig || p.channels.instagram.verified) && (!applied.tg || p.channels.telegram.verified);
@@ -164,7 +163,7 @@ function Discover() {
     items.push(<ProfileCard key={p.id} p={p} tint={i} />);
     if (i >= 18 && (i - 18) % 13 === 0) items.push(<NativeAd key={'ad' + i} />);
   });
-  const nonDefault = applied.loc || applied.dist !== 2500 || !applied.ig || !applied.tg || applied.ageMin !== 18 || applied.ageMax !== 99;
+  const nonDefault = applied.loc || applied.dist !== 500 || !applied.ig || !applied.tg || applied.ageMin !== 18 || applied.ageMax !== 99;
   const openFilters = () => { setDraft(applied); setFiltersOpen(true); };
   const apply = () => { setApplied(draft); setFiltersOpen(false); };
   const clear = () => { setDraft(DEFAULTS); setApplied(DEFAULTS); };
@@ -178,7 +177,7 @@ function Discover() {
           {applied.tg && <span className="badge tg" style={{ fontSize: 11 }}><Icon name="telegram" />TG verified</span>}
           {(applied.ageMin !== 18 || applied.ageMax !== 99) && <span className="badge neutral" style={{ fontSize: 11 }}>{applied.ageMin}–{applied.ageMax}</span>}
           {applied.loc && <span className="badge neutral" style={{ fontSize: 11 }}><Icon name="pin" size={11} />{applied.loc}</span>}
-          {applied.dist !== 2500 && <span className="badge neutral" style={{ fontSize: 11 }}>≤{applied.dist} km</span>}
+          {applied.dist !== 500 && <span className="badge neutral" style={{ fontSize: 11 }}>{applied.dist >= 3000 ? '🌍 Global' : '≤' + applied.dist + ' km'}</span>}
           <button onClick={clear} style={{ background: 'none', border: 'none', color: 'var(--violet)', cursor: 'pointer', fontWeight: 600, fontSize: 12, padding: 0 }}>Clear</button>
         </div>
       )}
@@ -199,8 +198,8 @@ function DiscoverEmpty({ narrow, framed }) {
       <h2 style={{ fontSize: 24 }}>No one new nearby — yet</h2>
       <p className="muted" style={{ fontSize: 15, lineHeight: 1.55 }}>We didn’t find profiles within your current distance. Try widening your range, or check back soon as more people join.</p>
       <div className="row wrap" style={{ gap: 10, justifyContent: 'center' }}>
-        <button className="btn primary">Widen distance</button>
-        <button className="btn ghost" onClick={() => go('me')}>Polish your profile</button>
+        <button className="btn primary" onClick={() => go('discover')}>Widen distance</button>
+        <button className="btn ghost" onClick={() => go('me')}>Change your profile settings</button>
       </div>
     </div>
   );

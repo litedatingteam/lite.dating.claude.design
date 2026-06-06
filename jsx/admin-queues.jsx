@@ -1,10 +1,10 @@
 /* lite.dating — admin queue surfaces */
 
-function QueueHead({ title, desc, count, hideSort }) {
+function QueueHead({ title, desc, count, hideSort, sort, onSort }) {
   return (
     <div className="row" style={{ justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
       <div><div className="row" style={{ gap: 10 }}><span className="eyebrow">{title}</span>{count != null && <span className="badge neutral">{count} in queue</span>}</div><p className="muted" style={{ fontSize: 13, marginTop: 4 }}>{desc}</p></div>
-      {!hideSort && <div className="row" style={{ gap: 8 }}><div className="seg"><button className="on">Newest</button><button>Priority</button></div></div>}
+      {!hideSort && <div className="row" style={{ gap: 8 }}><div className="seg"><button className={!sort || sort === 'newest' ? 'on' : ''} onClick={() => onSort && onSort('newest')}>Newest</button><button className={sort === 'priority' ? 'on' : ''} onClick={() => onSort && onSort('priority')}>Priority</button></div></div>}
     </div>
   );
 }
@@ -20,10 +20,12 @@ function QueueActions({ onA, onR, aLabel = 'Approve', rLabel = 'Reject' }) {
 }
 
 function AdminModeration({ onOpen }) {
-  const cases = window.TS.CASES;
+  const [sort, setSort] = useState('newest');
+  const SEV_RANK = { critical: 0, high: 1, medium: 2, med: 2, low: 3 };
+  const cases = [...window.TS.CASES].sort((a, b) => sort === 'priority' ? (SEV_RANK[a.priority] ?? 9) - (SEV_RANK[b.priority] ?? 9) : 0);
   return (
     <div>
-      <QueueHead title="Moderation queue" desc="Case-based review. Open a case to see evidence and apply a reasoned decision." count={cases.length} />
+      <QueueHead title="Moderation queue" desc="Case-based review. Open a case to see evidence and apply a reasoned decision." count={cases.length} sort={sort} onSort={setSort} />
       <DataTable cols={['Case', 'Reason', 'Subject', 'Policy', 'Priority', 'Status', 'Age']}
         rows={cases.map((c) => ({ _onClick: () => onOpen(c), cells: [
           <span className="row" style={{ gap: 7 }}><span className="mono" style={{ fontWeight: 700, color: 'var(--ink)' }}>{c.id}</span>{c.ai && <span className="badge neutral" style={{ fontSize: 10 }}>AI</span>}</span>,

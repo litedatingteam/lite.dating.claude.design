@@ -180,11 +180,11 @@
   display: grid; place-items: center; transition: background .16s, border-color .16s;
 }
 .gp-box.round { border-radius: 50%; }
-.gp-box.on { background: linear-gradient(108deg, var(--pink), var(--violet)); border-color: transparent; }
+.gp-box.on { background: var(--violet); border-color: transparent; }
 
 /* ---------- shared check / radio controls ---------- */
 .ck-box { width: 22px; height: 22px; border-radius: 6px; flex: none; border: 2px solid var(--line); background: transparent; display: grid; place-items: center; transition: background .15s, border-color .15s; }
-.ck-box.on { background: linear-gradient(108deg, var(--pink), var(--violet)); border-color: transparent; }
+.ck-box.on { background: var(--violet); border-color: transparent; }
 .ck-box.green.on { background: var(--green); }
 .rd-box { width: 22px; height: 22px; border-radius: 50%; flex: none; border: 2px solid var(--line); display: grid; place-items: center; transition: border-color .15s; }
 .rd-box.on { border-color: var(--violet); }

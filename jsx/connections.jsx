@@ -90,7 +90,7 @@ function Sent() {
 
 /* ---------------- connections ---------------- */
 function ConnectionCard({ c }) {
-  const { toast, go } = useNav();
+  const { toast, go, store } = useNav();
   const p = window.DB.byId(c.who);
   const tint = window.DB.PROFILES.findIndex((x) => x.id === c.who);
   const expired = c.expired || c.daysLeft <= 0;
@@ -109,7 +109,7 @@ function ConnectionCard({ c }) {
         {expired
           ? <div className="card" style={{ padding: 14, background: 'var(--surface-2)', border: 'none', display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
               <div className="row" style={{ gap: 8 }}><Icon name="clock" size={16} style={{ color: 'var(--faint)' }} /><span className="muted" style={{ fontSize: 13 }}>Expired from lite.dating. Your chat elsewhere is unaffected.</span></div>
-              <button className="btn primary sm" onClick={() => { store.sendRequest({ to: c.who, channel: c.channel, note: '' }); toast(`Re-requested ${c.channel === 'instagram' ? 'Instagram' : 'Telegram'} from ${p.name}`, 'ok'); }}><Icon name="send" size={14} />Re-request</button>
+              <button className="btn primary sm" onClick={() => { const res = store.sendRequest({ to: c.who, channel: c.channel, note: '' }); toast(res && res.ok ? `Re-requested ${c.channel === 'instagram' ? 'Instagram' : 'Telegram'} from ${p.name}` : 'Couldn’t re-request right now', res && res.ok ? 'ok' : 'warn'); }}><Icon name="send" size={14} />Re-request</button>
             </div>
           : <div className="card" style={{ padding: 14, background: 'var(--green-w)', border: 'none' }}>
               <div className="row" style={{ justifyContent: 'space-between', gap: 10 }}>

@@ -1,10 +1,23 @@
 /* lite.dating — your profile, edit, settings */
 
+/* labeled ad slot for own profile / edit profile — separated from sensitive actions */
+function ProfileAd() {
+  return (
+    <div className="card" style={{ marginTop: 24, overflow: 'hidden', border: '1px dashed var(--line)', maxWidth: 560 }}>
+      <div className="row" style={{ justifyContent: 'space-between', padding: '8px 14px', borderBottom: '1px solid var(--line-soft)' }}>
+        <span className="ad-label"><Icon name="info" size={12} />Advertisement</span>
+        <span className="faint" style={{ fontSize: 11 }}>Sponsored</span>
+      </div>
+      <div className="ad-frame" style={{ height: 90, display: 'grid', placeItems: 'center', borderRadius: 0, border: 'none', background: 'var(--surface-2)' }}><span className="ph-label">ad</span></div>
+    </div>
+  );
+}
+
 function YourProfile() {
   const { go, store, toast } = useNav();
   const me = window.DB.ME;
   const [tg, setTg] = useState(me.channels.telegram.verified ? 'verified' : 'idle');
-  const verifyTg = () => { setTg('checking'); setTimeout(() => { setTg('verified'); me.channels.telegram.verified = true; toast('Telegram verified', 'ok'); }, 1200); };
+  const [tgModal, setTgModal] = useState(false);
   return (
     <AppFrame title="Your profile" actions={<button className="btn primary sm" onClick={() => go('edit')}><Icon name="user" size={15} />Edit profile</button>}>
       <div style={{ display: 'grid', gridTemplateColumns: '0.8fr 1fr', gap: 32, alignItems: 'start' }} className="profile-grid">
@@ -49,13 +62,65 @@ function YourProfile() {
                   ? <span className="badge verified"><Icon name="check" />Verified</span>
                   : tg === 'checking'
                   ? <span className="badge pending"><span className="dot" style={{ background: 'var(--amber)' }} />Linking…</span>
-                  : <button className="btn soft sm" onClick={verifyTg}>Verify</button>}
+                  : <button className="btn soft sm" onClick={() => setTgModal(true)}>Verify</button>}
               </div>
             </div>
           </div>
         </div>
       </div>
+      <ProfileAd />
+      {tgModal && <TelegramVerifyModal onClose={() => setTgModal(false)} onVerified={() => { setTg('verified'); me.channels.telegram.verified = true; me.channels.telegram.handle = '@you_tg'; toast('Telegram verified', 'ok'); setTgModal(false); }} />}
     </AppFrame>
+  );
+}
+
+/* secure one-time Telegram link verification (reused from onboarding flow) */
+function TelegramVerifyModal({ onClose, onVerified }) {
+  const { toast } = useNav();
+  const [state, setState] = useState('link'); // link | waiting | expired | taken
+  const [token] = useState(() => Math.random().toString(36).slice(2, 12));
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+        <div className="row" style={{ justifyContent: 'space-between', padding: '18px 22px 0' }}>
+          <span className="eyebrow">Verify Telegram</span>
+          <button className="btn icon sm ghost" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+        <div style={{ padding: '12px 22px 22px' }} className="stack">
+          <p className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>Telegram verification uses a <strong style={{ color: 'var(--ink)' }}>secure one-time link</strong> that connects your Telegram account to your lite.dating account — your identity is bound to your Telegram <strong style={{ color: 'var(--ink)' }}>account</strong>, not just your @username.</p>
+          {state === 'expired' ? (
+            <div className="card pad stack" style={{ gap: 10, background: 'var(--red-w)', border: 'none' }}>
+              <div className="row" style={{ gap: 9 }}><Icon name="clock" size={16} style={{ color: 'var(--red)', flex: 'none' }} /><span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>This link expired before confirmation. Generate a fresh one.</span></div>
+              <button className="btn ink sm" style={{ alignSelf: 'flex-start' }} onClick={() => setState('link')}><Icon name="link" size={14} />Generate new secure link</button>
+            </div>
+          ) : state === 'taken' ? (
+            <div className="card pad stack" style={{ gap: 10, background: 'var(--red-w)', border: 'none' }}>
+              <div className="row" style={{ gap: 9 }}><Icon name="info" size={16} style={{ color: 'var(--red)', flex: 'none' }} /><span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>This Telegram account is already linked to another lite.dating account.</span></div>
+              <button className="btn ghost sm" style={{ alignSelf: 'flex-start' }} onClick={onClose}>Use a different account</button>
+            </div>
+          ) : state === 'waiting' ? (
+            <div className="stack" style={{ gap: 12 }}>
+              <div className="row" style={{ gap: 10, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', padding: '10px 12px', justifyContent: 'space-between' }}>
+                <span className="mono" style={{ fontSize: 12.5, color: 'var(--ink)' }}>t.me/litedating_bot?start=…</span>
+                <button className="btn ghost sm" onClick={() => toast('Secure link copied', 'ok')}><Icon name="copy" size={14} />Copy</button>
+              </div>
+              <div className="row" style={{ gap: 10, justifyContent: 'center', padding: 4 }}><span className="spinner" /><span className="muted" style={{ fontSize: 13 }}>Waiting for the bot to confirm…</span></div>
+              <div className="row" style={{ gap: 8 }}>
+                <button className="btn primary sm" style={{ flex: 1 }} onClick={onVerified}>Simulate confirmed</button>
+                <button className="btn ghost sm" onClick={() => setState('expired')}>Link expired</button>
+                <button className="btn ghost sm" onClick={() => setState('taken')}>Already used</button>
+              </div>
+            </div>
+          ) : (
+            <div className="stack" style={{ gap: 10 }}>
+              <span className="eyebrow">Open your secure link</span>
+              <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>Opens <span className="mono" style={{ color: 'var(--ink)' }}>@litedating_bot</span> and tap <strong style={{ color: 'var(--ink)' }}>Start</strong>. No code to keep in your profile.</p>
+              <button className="btn ink" onClick={() => setState('waiting')}><Icon name="telegram" size={15} />Open secure Telegram link</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -95,6 +160,7 @@ function EditProfile() {
         </div>
       </div>
       {intModal && <InterestsModal onClose={() => setIntModal(false)} />}
+      <ProfileAd />
     </AppFrame>
   );
 }

@@ -112,8 +112,7 @@ function Landing() {
             <div style={{ padding: '44px 40px', display: 'grid', placeItems: 'center' }}>
               <div className="card" style={{ width: '100%', maxWidth: 320, padding: 16 }}>
                 <div className="ad-label" style={{ marginBottom: 8 }}><Icon name="info" size={12} /> Advertisement</div>
-                <div className="ad-frame" style={{ height: 96, display: 'grid', placeItems: 'center' }}><span className="ph-label">ad slot</span></div>
-                <p className="faint" style={{ fontSize: 11.5, marginTop: 10 }}>Ads are always labeled and kept clear of any profile action.</p>
+                <div className="ad-frame" style={{ height: 96, display: 'grid', placeItems: 'center' }}><span className="ph-label">ad</span></div>
               </div>
             </div>
           </div>

@@ -94,14 +94,13 @@ function WhyFree() {
         <div className="card pad">
           <div className="row" style={{ justifyContent: 'space-between', marginBottom: 14 }}>
             <span className="ad-label"><Icon name="info" size={12} /> Sponsored links</span>
-            <span className="badge neutral">Google-certified CMP</span>
+            <span className="badge neutral">Certified consent</span>
           </div>
           <div className="stack" style={{ gap: 10 }}>
             {[0, 1].map((i) => (
               <div key={i} className="ad-frame" style={{ height: 72, display: 'grid', placeItems: 'center' }}><span className="ph-label">ad slot</span></div>
             ))}
           </div>
-          <p className="faint" style={{ fontSize: 12, marginTop: 12 }}>This is what an ad placement looks like — separate, framed, and labeled. You can manage personalization in Settings.</p>
         </div>
       </div>
       <div className="card pad" style={{ marginTop: 24, display: 'flex', gap: 14, alignItems: 'flex-start', background: 'var(--grad-soft)', border: 'none' }}>

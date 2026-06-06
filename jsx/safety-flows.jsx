@@ -78,7 +78,7 @@ function ReportFlow({ offPlatform }) {
       footer={
         <div className="row" style={{ gap: 10 }}>
           {step > 1 && <button className="btn ghost lg" onClick={() => setStep(step - 1)}>Back</button>}
-          <button className="btn primary lg" style={{ flex: 1 }} disabled={step === 1 && !type} onClick={() => setStep(step + 1)}>{step === 3 ? 'Submit report' : 'Continue'}</button>
+          <button className="btn primary lg" style={{ flex: 1 }} disabled={step === 1 && (!type || !handle.trim())} onClick={() => setStep(step + 1)}>{step === 3 ? 'Submit report' : 'Continue'}</button>
         </div>
       }>
       {step === 1 && <div className="stack" style={{ gap: 12 }}>
@@ -138,28 +138,31 @@ function ReportFlow({ offPlatform }) {
 }
 
 function AppealFlow() {
-  const { go } = useNav();
+  const { go, store } = useNav();
   const [step, setStep] = useState(1);
+  const ret = store.returnTo || { name: 'safety-center' };
+  const retLabel = ret.name === 'decisions' ? 'Active decisions' : ret.name === 'settings' ? 'Settings' : 'Safety center';
+  const goRet = () => go(ret.name, ret.param);
   const [reason, setReason] = useState(null);
   const [statement, setStatement] = useState('');
   const decision = { type: 'Visibility hold', action: 'Your profile is hidden from Discover', cat: 'Harassment (P-3.2)', ai: true, human: true, window: '6 months', response: '5 days' };
 
   if (step === 3) {
     return (
-      <FlowShell title="Appeal submitted" onBack={() => go('safety-center')}>
+      <FlowShell title="Appeal submitted" onBack={goRet}>
         <div className="tac stack" style={{ alignItems: 'center', gap: 16, padding: '40px 0' }}>
           <div style={{ width: 72, height: 72, borderRadius: 22, background: 'var(--green-w)', display: 'grid', placeItems: 'center', color: 'var(--green)' }}><Icon name="check" size={32} /></div>
           <h1 style={{ fontSize: 24 }}>Your appeal is in</h1>
           <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.55, maxWidth: 380 }}>A human reviewer will look at your case independently of the original decision. We aim to respond within 5 days. You’ll get a notice by email and in your Safety center.</p>
           <span className="badge neutral mono">Appeal ref · A-{Math.floor(200 + Math.random() * 99)}</span>
-          <button className="btn primary" style={{ marginTop: 8 }} onClick={() => go('safety-center')}>Back to Safety center</button>
+          <button className="btn primary" style={{ marginTop: 8 }} onClick={goRet}>Back to {retLabel}</button>
         </div>
       </FlowShell>
     );
   }
 
   return (
-    <FlowShell title="Appeal a decision" step={step} total={2} onBack={() => (step > 1 ? setStep(step - 1) : go('safety-center'))}
+    <FlowShell title="Appeal a decision" step={step} total={2} onBack={() => (step > 1 ? setStep(step - 1) : goRet())}
       footer={<div className="row" style={{ gap: 10 }}>{step > 1 && <button className="btn ghost lg" onClick={() => setStep(1)}>Back</button>}<button className="btn primary lg" style={{ flex: 1 }} disabled={step === 1 ? !reason : false} onClick={() => setStep(step + 1)}>{step === 2 ? 'Submit appeal' : 'Continue'}</button></div>}>
       {step === 1 && <div className="stack" style={{ gap: 16 }}>
         {/* decision notice */}
@@ -302,12 +305,12 @@ function SafetyCenter() {
       ['shield', 'Report off-platform harm', 'Even if it happened on IG or Telegram', goOff],
     ]],
     ['Your decisions', [
-      ['info', 'Appeal a decision', 'Ask for an independent human review', () => go('appeal')],
+      ['info', 'Appeal a decision', 'Ask for an independent human review', () => { store.setReturnTo({ name: 'safety-center' }); go('appeal'); }],
       ['eye', 'Active decisions', 'See any restrictions on your account', () => go('decisions')],
     ]],
     ['Your data & rules', [
       ['copy', 'Export your data', 'Download a copy of everything', () => go('data-export')],
-      ['lock', 'Consent settings', 'Manage ad & verification consent', () => go('consent')],
+      ['lock', 'Consent settings', 'Manage ad & verification consent', () => { store.setReturnTo({ name: 'safety-center' }); go('consent'); }],
       ['user', 'Community rules', 'What’s allowed and what isn’t', () => go('rules-app')],
       ['mail', 'Contact safety team', 'safety@lite.dating', () => go('safety-contact')],
     ]],
@@ -420,7 +423,7 @@ function DecisionNoticeModal({ n, onClose, onAppeal }) {
 }
 
 function ActiveDecisions() {
-  const { go } = useNav();
+  const { go, store } = useNav();
   const [status, setStatus] = useState('hold');
   const [noticeOpen, setNoticeOpen] = useState(null);
   const NOTICES = {
@@ -451,7 +454,7 @@ function ActiveDecisions() {
         ]} />
         <AdsPausedNote />
         <div className="row wrap" style={{ gap: 10 }}>
-          <button className="btn primary" onClick={() => go('appeal')}><Icon name="info" size={16} />Appeal this decision</button>
+          <button className="btn primary" onClick={() => { store.setReturnTo({ name: 'decisions' }); go('appeal'); }}><Icon name="info" size={16} />Appeal this decision</button>
           <button className="btn ghost" onClick={() => openNotice('hold')}>Read full notice</button>
         </div>
       </div>
@@ -467,7 +470,7 @@ function ActiveDecisions() {
           ['Appeal window', <strong style={{ color: 'var(--ink)' }}>6 months from the decision</strong>],
         ]} />
         <div className="row wrap" style={{ gap: 10 }}>
-          <button className="btn primary" onClick={() => go('appeal')}><Icon name="info" size={16} />Appeal this decision</button>
+          <button className="btn primary" onClick={() => { store.setReturnTo({ name: 'decisions' }); go('appeal'); }}><Icon name="info" size={16} />Appeal this decision</button>
           <button className="btn ghost" onClick={() => openNotice('suspended')}>Read full notice</button>
         </div>
       </div>
@@ -484,7 +487,7 @@ function ActiveDecisions() {
           <Icon name="lock" size={17} style={{ color: 'var(--green)', flex: 'none' }} />
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>Your selfie stays private — never shown to other users, never used for ads. No government ID is required.</p>
         </div>
-        <button className="btn primary" style={{ alignSelf: 'start' }}><Icon name="camera" size={16} />Start re-verification</button>
+        <button className="btn primary" style={{ alignSelf: 'start' }} onClick={() => go('onb')}><Icon name="camera" size={16} />Start re-verification</button>
       </div>
     ),
     appealing: (
@@ -512,7 +515,7 @@ function ActiveDecisions() {
         {STATUS_PREVIEWS.map(([k, label]) => <button key={k} className={status === k ? 'on' : ''} onClick={() => setStatus(k)}>{label}</button>)}
       </div>
       <div className="center-col fade-in" key={status} style={{ maxWidth: 640, margin: 0 }}>{views[status]}</div>
-      {noticeOpen && <DecisionNoticeModal n={noticeOpen} onClose={() => setNoticeOpen(null)} onAppeal={() => go('appeal')} />}
+      {noticeOpen && <DecisionNoticeModal n={noticeOpen} onClose={() => setNoticeOpen(null)} onAppeal={() => { store.setReturnTo({ name: 'decisions' }); go('appeal'); }} />}
     </AppFrame>
   );
 }

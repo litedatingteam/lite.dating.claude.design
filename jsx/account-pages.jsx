@@ -97,7 +97,7 @@ function BlockedAccounts() {
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>Blocking someone hides you from each other completely and cancels any pending requests between you. They’re never told they were blocked.</p>
         </div>
         {blocked.length === 0
-          ? <EmptyState icon="x" title="You haven’t blocked anyone" body="When you block someone, they’ll appear here so you can unblock them later if you change your mind." action="Find people" onAction={() => go('discover')} />
+          ? <EmptyState icon="x" title="You haven’t blocked anyone" body="When you block someone, they’ll appear here so you can unblock them later if you change your mind." />
           : <div className="stack" style={{ gap: 10 }}>
               {blocked.map((b) => (
                 <div key={b} className="card pad row" style={{ justifyContent: 'space-between' }}>
@@ -169,14 +169,13 @@ function AdExperience() {
             <span className="eyebrow">Your current ad experience</span>
             <SafeChip tone="green" icon="check">Ads active</SafeChip>
           </div>
-          <strong style={{ color: 'var(--ink)', fontSize: 17 }}>{consent ? 'Personalized ads' : 'Non-personalized ads'}</strong>
-          <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.5, marginTop: 6 }}>{consent ? 'You see ads based on Google’s certified personalization, with the consent you gave through the CMP.' : 'You see only non-personalized ads. They’re based on context, not your activity.'}</p>
+          <strong style={{ color: 'var(--ink)', fontSize: 17 }}>Ads keep lite.dating free</strong>
+          <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.5, marginTop: 6 }}>Whether you see personalized or non-personalized ads is set in your consent choices. Either way, the service stays fully usable — declining personalization never limits any feature.</p>
           <div className="hr" style={{ margin: '14px 0' }} />
-          <label className="row" style={{ gap: 12, cursor: 'pointer', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => { setConsent(!consent); toast(!consent ? 'Personalized ads on' : 'Switched to non-personalized', 'ok'); }}>
-            <span style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 500 }}>Personalized ads</span>
-            <Switch checked={consent} onChange={() => { setConsent(!consent); }} />
-          </label>
-          <p className="faint" style={{ fontSize: 12, marginTop: 8 }}>Managed through Google’s certified consent system (CMP). Turning this off never limits any lite.dating feature.</p>
+          <div className="row" style={{ justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0 }}><strong style={{ fontSize: 14, color: 'var(--ink)' }}>Ad choices</strong><p className="faint" style={{ fontSize: 12, marginTop: 2 }}>Personalization is managed through the certified consent system.</p></div>
+            <button className="btn primary sm" onClick={() => toast('Opening consent options…')}><Icon name="shield" size={14} />Manage ad choices</button>
+          </div>
         </div>
 
         {/* CMP card */}
@@ -279,7 +278,9 @@ function SafetyContact() {
 
 /* ---------- consent settings (separate, granular) ---------- */
 function ConsentSettings() {
-  const { go, toast } = useNav();
+  const { go, toast, store } = useNav();
+  const ret = store.returnTo || { name: 'safety-center' };
+  const retLabel = ret.name === 'settings' ? 'Settings' : 'Safety center';
   const [c, setC] = useState({ ads: true, selfie: false, analytics: true });
   const set = (k, v) => { setC((s) => ({ ...s, [k]: v })); toast('Preference saved · logged', 'ok'); };
   const rows = [
@@ -288,7 +289,7 @@ function ConsentSettings() {
     ['analytics', 'Product analytics', 'consent', 'Privacy-respecting usage analytics that help us improve lite.dating. No selling of data, ever.'],
   ];
   return (
-    <AppFrame title="Consent settings" actions={<button className="btn ghost sm" onClick={() => go('safety-center')}><Icon name="arrowL" size={15} />Safety center</button>}>
+    <AppFrame title="Consent settings" actions={<button className="btn ghost sm" onClick={() => go(ret.name, ret.param)}><Icon name="arrowL" size={15} />{retLabel}</button>}>
       <div className="center-col stack" style={{ gap: 16, maxWidth: 600, margin: 0 }}>
         <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.55 }}>Manage the optional, consent-based processing. <strong style={{ color: 'var(--ink)' }}>None of these are required to use lite.dating</strong> — each change is recorded with a timestamp.</p>
 

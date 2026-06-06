@@ -38,9 +38,12 @@ function RequestModal({ p, channel, onClose }) {
   const already = store.sent.find((s) => s.to === p.id && s.channel === channel && s.status === 'pending');
 
   const send = () => {
-    store.sendRequest({ to: p.id, channel, note });
-    toast(`Request sent to ${p.name}`, 'ok');
-    onClose();
+    const res = store.sendRequest({ to: p.id, channel, note });
+    if (res && res.ok) { toast(`Request sent to ${p.name}`, 'ok'); onClose(); }
+    else {
+      const msg = { ineligible: 'Both of you must verify this channel first', connected: 'You’re already connected on this channel', duplicate: 'You already have a pending request', declined: `You can’t send another ${channel} request to ${p.name}`, limit: 'Daily request limit reached' }[res && res.reason] || 'Couldn’t send request';
+      toast(msg, 'warn');
+    }
   };
 
   return (
@@ -99,6 +102,7 @@ function ProfileDetail({ id }) {
   const me = window.DB.ME;
   const [modal, setModal] = useState(null); // channel string
   const [blockOpen, setBlockOpen] = useState(false);
+  const [verifyCh, setVerifyCh] = useState(null);
   const tint = Math.max(0, window.DB.PROFILES.findIndex((x) => x.id === id));
   if (!p) return <AppFrame title="Profile"><p className="muted">Profile not found.</p></AppFrame>;
 
@@ -157,7 +161,7 @@ function ProfileDetail({ id }) {
             <div className="row wrap" style={{ gap: 8 }}>
               {s.meV
                 ? <button className="btn primary sm" onClick={() => { store.acceptRequest(s.incoming.id); toast(`You shared your ${CH[ch]} with ${p.name}`, 'ok'); }}><Icon name="check" size={14} />Accept & share</button>
-                : <button className="btn ink sm" onClick={() => go('settings')}><Icon name={ch} size={14} />Verify {CH[ch]} to accept</button>}
+                : <button className="btn ink sm" onClick={() => setVerifyCh(ch)}><Icon name={ch} size={14} />Verify {CH[ch]} to accept</button>}
               <button className="btn ghost sm" onClick={() => { store.declineRequest(s.incoming.id); toast('Request passed', 'warn'); }}>Pass</button>
             </div>
           </div>
@@ -180,7 +184,7 @@ function ProfileDetail({ id }) {
         {/* unavailable → verify-your-own CTA or info */}
         {s.state === 'unavailable' && (
           !s.meV
-            ? <button className="btn soft sm" onClick={() => go('settings')}><Icon name={ch} size={13} />Verify your {CH[ch]}</button>
+            ? <button className="btn soft sm" onClick={() => setVerifyCh(ch)}><Icon name={ch} size={13} />Verify your {CH[ch]}</button>
             : <span className="muted" style={{ fontSize: 12.5 }}>{p.name} hasn’t verified {CH[ch]} yet.</span>
         )}
       </div>
@@ -190,7 +194,7 @@ function ProfileDetail({ id }) {
   return (
     <AppFrame title="Profile" actions={<button className="btn ghost sm" onClick={() => go('discover')}><Icon name="arrowL" size={15} />Back to Discover</button>}>
       <div style={{ display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 32, alignItems: 'start' }} className="profile-grid">
-        <div style={{ position: 'sticky', top: 90 }}><Gallery p={p} tint={tint} /></div>
+        <div className="profile-gallery" style={{ position: 'sticky', top: 90 }}><Gallery p={p} tint={tint} /></div>
         <div className="stack" style={{ gap: 22 }}>
           <div className="stack" style={{ gap: 8 }}>
             <div className="row wrap" style={{ gap: 10, alignItems: 'center' }}>
@@ -246,9 +250,54 @@ function ProfileDetail({ id }) {
         </div>
       </div>
       {modal && <RequestModal p={p} channel={modal} onClose={() => setModal(null)} />}
+      {verifyCh && <ChannelVerifyModal channel={verifyCh} onClose={() => setVerifyCh(null)} onVerified={() => { window.DB.ME.channels[verifyCh].verified = true; toast(`${CH[verifyCh]} verified`, 'ok'); setVerifyCh(null); }} />}
       {blockOpen && <BlockModal name={p.name} onClose={() => setBlockOpen(false)} onConfirm={(report) => { store.block(p.id); toast(report ? `${p.name} blocked & reported — you won’t see each other` : `${p.name} blocked — you won’t see each other`, 'warn'); go('discover'); }} />}
     </AppFrame>
   );
 }
 
-Object.assign(window, { ProfileDetail, RequestModal, Gallery });
+/* channel verify modal: Telegram secure link / Instagram bio code */
+function ChannelVerifyModal({ channel, onClose, onVerified }) {
+  const { toast } = useNav();
+  const [state, setState] = useState('start'); // start | waiting | expired | taken
+  const tg = channel === 'telegram';
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+        <div className="row" style={{ justifyContent: 'space-between', padding: '18px 22px 0' }}>
+          <span className="eyebrow">Verify {tg ? 'Telegram' : 'Instagram'}</span>
+          <button className="btn icon sm ghost" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+        <div style={{ padding: '12px 22px 22px' }} className="stack">
+          {tg ? (
+            <>
+              <p className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>Telegram verification uses a <strong style={{ color: 'var(--ink)' }}>secure one-time link</strong> that binds your Telegram <strong style={{ color: 'var(--ink)' }}>account</strong> (not just the @username) to lite.dating.</p>
+              {state === 'expired' ? (
+                <div className="card pad stack" style={{ gap: 10, background: 'var(--red-w)', border: 'none' }}><div className="row" style={{ gap: 9 }}><Icon name="clock" size={16} style={{ color: 'var(--red)', flex: 'none' }} /><span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Link expired before confirmation.</span></div><button className="btn ink sm" style={{ alignSelf: 'flex-start' }} onClick={() => setState('start')}><Icon name="link" size={14} />New secure link</button></div>
+              ) : state === 'taken' ? (
+                <div className="card pad stack" style={{ gap: 10, background: 'var(--red-w)', border: 'none' }}><div className="row" style={{ gap: 9 }}><Icon name="info" size={16} style={{ color: 'var(--red)', flex: 'none' }} /><span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>This Telegram account is already linked to another lite.dating account.</span></div><button className="btn ghost sm" style={{ alignSelf: 'flex-start' }} onClick={onClose}>Use another account</button></div>
+              ) : state === 'waiting' ? (
+                <div className="stack" style={{ gap: 12 }}>
+                  <div className="row" style={{ gap: 10, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', padding: '10px 12px', justifyContent: 'space-between' }}><span className="mono" style={{ fontSize: 12.5, color: 'var(--ink)' }}>t.me/litedating_bot?start=…</span><button className="btn ghost sm" onClick={() => toast('Secure link copied', 'ok')}><Icon name="copy" size={14} />Copy</button></div>
+                  <div className="row" style={{ gap: 10, justifyContent: 'center', padding: 4 }}><span className="spinner" /><span className="muted" style={{ fontSize: 13 }}>Waiting for the bot to confirm…</span></div>
+                  <div className="row" style={{ gap: 8 }}><button className="btn primary sm" style={{ flex: 1 }} onClick={onVerified}>Simulate confirmed</button><button className="btn ghost sm" onClick={() => setState('expired')}>Expired</button><button className="btn ghost sm" onClick={() => setState('taken')}>Already used</button></div>
+                </div>
+              ) : (
+                <button className="btn ink" onClick={() => setState('waiting')}><Icon name="telegram" size={15} />Open secure Telegram link</button>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>Add the code <span className="mono" style={{ color: 'var(--ink)', fontWeight: 700 }}>lite-{Math.random().toString(36).slice(2, 6).toUpperCase()}</span> to your Instagram bio and keep it there for at least 24 hours.</p>
+              {state === 'waiting'
+                ? <div className="card pad stack" style={{ gap: 10, background: 'var(--amber-w)', border: 'none' }}><div className="row" style={{ gap: 9 }}><Icon name="clock" size={16} style={{ color: 'color-mix(in oklch, var(--amber), black 18%)', flex: 'none' }} /><span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Code found — verification confirms after the 24-hour hold.</span></div><button className="btn soft sm" style={{ alignSelf: 'flex-start' }} onClick={onVerified}>Simulate 24h elapsed</button></div>
+                : <button className="btn primary" onClick={() => setState('waiting')}>I added the code — check now</button>}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { ProfileDetail, RequestModal, Gallery, ChannelVerifyModal });

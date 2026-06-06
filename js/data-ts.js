@@ -58,8 +58,12 @@
   ];
 
   const AD_PLACEMENTS = [
-    { slot: 'Discover feed (native)', status: 'ok', label: 'Advertisement', note: 'After 5 cards · labeled · separated' },
-    { slot: 'Why-it-free page', status: 'ok', label: 'Sponsored links', note: 'Google-certified CMP' },
+    { slot: 'Discover feed (native)', status: 'ok', label: 'Advertisement', note: 'After 19 cards, then every 13 · labeled · separated' },
+    { slot: 'Favorites grid (native)', status: 'ok', label: 'Advertisement', note: 'After 7 cards, then every 9 · labeled' },
+    { slot: 'Own profile', status: 'ok', label: 'Advertisement', note: 'Allowed · separated from editing actions' },
+    { slot: 'Edit profile', status: 'ok', label: 'Advertisement', note: 'Allowed · away from verification & delete' },
+    { slot: 'Why-it-free page', status: 'ok', label: 'Sponsored links', note: 'Certified consent' },
+    { slot: 'Other user profile pages', status: 'blocked', label: '—', note: 'Ads disallowed on other profiles' },
     { slot: 'Request modal', status: 'blocked', label: '—', note: 'Ads disallowed near actions' },
     { slot: 'Report / appeal flow', status: 'blocked', label: '—', note: 'Ads disallowed in safety' },
     { slot: 'Verification selfie', status: 'blocked', label: '—', note: 'Ads disallowed' },

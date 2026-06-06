@@ -27,7 +27,7 @@ function OnbBasics({ data, set }) {
       <Field label="Your gender / presentation" hint="Shown on your profile.">
         <GenderPicker value={data.gender} onChange={(v) => set({ gender: v })} />
       </Field>
-      <Field label="Interested in" hint="Pick one or more. You’ll only see — and be seen by — people whose preferences match yours both ways.">
+      <Field label="Interested in" error={data.seeking.length === 0 ? 'Pick at least one' : null} hint="Pick one or more. You’ll only see — and be seen by — people whose preferences match yours both ways.">
         <GenderPicker multi value={data.seeking} onChange={(v) => set({ seeking: v })} />
       </Field>
       <Field label="City" hint="We auto-detect your area, never your exact location. Change it anytime.">

@@ -6,7 +6,7 @@ function OpsBrand({ kind, user }) {
       <span style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--ink)', display: 'grid', placeItems: 'center', color: 'white', flex: 'none' }}><Icon name={kind === 'admin' ? 'grid' : 'shield'} size={16} /></span>
       <div style={{ lineHeight: 1.1 }}>
         <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink)', letterSpacing: '-0.02em' }}>lite<span className="muted">.ops</span></div>
-        <div className="mono" style={{ fontSize: 9.5, color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{kind === 'admin' ? 'Admin console' : 'Moderation'}</div>
+        <div className="mono" style={{ fontSize: 9.5, color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{kind === 'admin' ? 'Admin console' : kind === 'owner' ? 'Owner console' : 'Moderation'}</div>
       </div>
     </div>
   );

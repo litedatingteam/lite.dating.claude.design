@@ -97,6 +97,7 @@ function AdminVisitors() {
 }
 
 function AdminRisk() {
+  const { toast } = useNav();
   return (
     <div>
       <QueueHead title="Risk signals" desc="Automated abuse and integrity signals. High-severity items auto-throttle before review." />
@@ -106,7 +107,7 @@ function AdminRisk() {
             <div className="row" style={{ justifyContent: 'space-between' }}><strong style={{ color: 'var(--ink)', fontSize: 15 }}>{r.title}</strong><SevBadge sev={r.sev} /></div>
             <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--ink)' }}>{r.value}</div>
             <p className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>{r.desc}</p>
-            <button className="btn ghost sm" style={{ alignSelf: 'start' }}>{r.action}<Icon name="arrowR" size={14} /></button>
+            <button className="btn ghost sm" style={{ alignSelf: 'start' }} onClick={() => toast(`${r.action} · logged`, 'ok')}>{r.action}<Icon name="arrowR" size={14} /></button>
           </div>
         ))}
       </div>
@@ -129,6 +130,7 @@ function AdminAudit() {
 
 function AdminModerators() {
   const { toast } = useNav();
+  const [invite, setInvite] = useState(false);
   return (
     <div>
       <QueueHead title="Moderators & team" desc="Manage who can review cases. Roles: Owner, Admin, Moderator — there is no super-admin." />
@@ -138,7 +140,41 @@ function AdminModerators() {
           <span className="badge neutral">{m.role}</span>, <StatusPill status={m.status} />, m.cases, <span className="muted" style={{ fontSize: 12.5 }}>{m.shift}</span>,
           <button className="btn ghost sm" onClick={() => toast('Member settings')}>Manage</button>,
         ] })) } />
-      <button className="btn ink" style={{ marginTop: 16 }} onClick={() => toast('Invite sent', 'ok')}><Icon name="plus" size={15} />Invite member</button>
+      <button className="btn ink" style={{ marginTop: 16 }} onClick={() => setInvite(true)}><Icon name="plus" size={15} />Invite member</button>
+      {invite && <InviteMemberModal onClose={() => setInvite(false)} />}
+    </div>
+  );
+}
+
+function InviteMemberModal({ onClose }) {
+  const { toast } = useNav();
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('Moderator');
+  const valid = /.+@.+\..+/.test(email);
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+        <div className="row" style={{ justifyContent: 'space-between', padding: '18px 22px 0' }}>
+          <span className="eyebrow">Invite team member</span>
+          <button className="btn icon sm ghost" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+        <div style={{ padding: '14px 22px 22px' }} className="stack">
+          <Field label="Email address" hint="They’ll get a secure invite link to join the ops team.">
+            <input className="input" type="email" placeholder="name@lite.dating" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </Field>
+          <Field label="Role" hint={role === 'Admin' ? 'Can review cases, apply holds/suspensions, manage queues.' : 'Can review assigned cases and recommend actions only.'}>
+            <div className="seg" style={{ alignSelf: 'flex-start' }}>
+              <button className={role === 'Moderator' ? 'on' : ''} onClick={() => setRole('Moderator')}>Moderator</button>
+              <button className={role === 'Admin' ? 'on' : ''} onClick={() => setRole('Admin')}>Admin</button>
+            </div>
+          </Field>
+          <div className="card pad" style={{ background: 'var(--surface-2)', border: 'none', display: 'flex', gap: 9 }}>
+            <Icon name="info" size={15} style={{ color: 'var(--violet)', flex: 'none' }} />
+            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>Owner is assigned by ownership transfer, not invitation. New members start with no live cases.</span>
+          </div>
+          <button className="btn ink lg block" disabled={!valid} onClick={() => { toast(`Invite sent to ${email} · ${role}`, 'ok'); onClose(); }}><Icon name="mail" size={16} />Send invite</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -175,7 +211,7 @@ function AdminLegal() {
     <div className="stack" style={{ gap: 20 }}>
       <div>
         <QueueHead title="Legal documents" desc="Versioned policies. Publishing triggers the in-app legal update gate for all users." />
-        <DataTable cols={['Document', 'Version', 'Status', '']} rows={docs.map((d) => ({ cells: [<strong style={{ color: 'var(--ink)' }}>{d[0]}</strong>, <span className="mono">{d[1]}</span>, <StatusPill status={d[2] === 'published' ? 'active' : 'invited'} />, <button className="btn ghost sm" onClick={() => toast('Editing ' + d[0])}>Edit</button>] })) } />
+        <DataTable cols={['Document', 'Version', 'Status', '']} rows={docs.map((d) => ({ cells: [<strong style={{ color: 'var(--ink)' }}>{d[0]}</strong>, <span className="mono">{d[1]}</span>, <StatusPill status={d[2] === 'published' ? 'active' : 'invited'} />, <button className="btn ghost sm" onClick={() => toast('Publishing legal docs is Owner-only — view here, edit in Owner console', 'warn')}><Icon name="eye" size={13} />View</button>] })) } />
       </div>
       <div>
         <span className="eyebrow">Crawler & indexing</span>

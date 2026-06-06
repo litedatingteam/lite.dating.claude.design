@@ -110,7 +110,7 @@ function ModDashboard({ onOpen, cases }) {
   );
 }
 
-const ACTIONS = ['No action needed', 'Send warning', 'Visibility hold', 'Recommend suspension (Owner/Admin)', 'Escalate to Owner/Admin review'];
+const ACTIONS = ['No action needed', 'Send warning', 'Recommend visibility hold', 'Recommend suspension (Owner/Admin)', 'Escalate to Owner/Admin review'];
 
 function ModCaseReview({ c, onBack, onResolve }) {
   const { toast } = useNav();
@@ -183,7 +183,7 @@ function ModCaseReview({ c, onBack, onResolve }) {
             <Field label="Reasoned notice (sent to user)" hint="Required. Decisions must explain why.">
               <textarea className="textarea" style={{ minHeight: 90 }} placeholder="Explain the decision in plain language…" value={notice} onChange={(e) => setNotice(e.target.value)} />
             </Field>
-            <button className="btn ink lg block" disabled={!action || !notice} onClick={() => { toast(`Decision applied to ${c.id} · logged`, 'ok'); onResolve(c.id); }}>Apply decision</button>
+            <button className="btn ink lg block" disabled={!action || !notice} onClick={() => { const isRec = /^Recommend|^Escalate/.test(action); toast(`${isRec ? 'Recommendation submitted' : 'Decision applied'} for ${c.id} · logged`, 'ok'); onResolve(c.id); }}>{/^Recommend|^Escalate/.test(action) ? 'Submit recommendation' : 'Apply decision'}</button>
             <p className="faint" style={{ fontSize: 11.5, lineHeight: 1.5 }}>Applying records your handle, the policy, the action, and this notice to the audit trail.</p>
           </div>
         </div>
